@@ -25,3 +25,7 @@ _testmain.go
 
 *.iml
 /target/
+
+node_modules/
+dist/
+tmp/
