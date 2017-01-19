@@ -28,11 +28,12 @@ func OnUISocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	// handle messages to the ui
 	go handleToUI(hub)
-
 }
 
 func handleToUI(hub *Hub) {
 	for {
+		log.Println("waiting for data to send to the UI")
+
 		var msg models.BaseModel = <-hub.toUi
 		log.Println("should send this to client: ", msg.Type.Name, msg.Message)
 	}
@@ -40,6 +41,8 @@ func handleToUI(hub *Hub) {
 
 func handleFromUI(c *websocket.Conn) {
 	for {
+		log.Println("UI joined. Waiting for messages from UI")
+
 		// parse message
 		var msg models.BaseModel
 		err := c.ReadJSON(&msg)

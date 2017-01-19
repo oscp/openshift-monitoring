@@ -9,7 +9,7 @@ export class SocketService {
 
   public createOrGetWebsocket(): Subject<MessageEvent> {
     if (!this.existingSocket) {
-      let socket = new WebSocket('ws://localhost:8080/api');
+      let socket = new WebSocket('ws://localhost:8080/ui');
       let observable = Observable.create(
           (observer: Observer<MessageEvent>) => {
             socket.onmessage = observer.next.bind(observer);

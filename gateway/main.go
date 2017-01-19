@@ -14,8 +14,8 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	log.Println("ui server waiting for websocket on ", *uiAddr)
 	log.Println("hub waiting for deamons on ", *hubAddr)
+	log.Println("ui server waiting for websocket on ", *uiAddr)
 
 	// Start hub rcp server
 	hub := server.NewHub(*hubAddr)
