@@ -17,9 +17,14 @@ func main() {
 	log.Println("ui server waiting for websocket on ", *uiAddr)
 	log.Println("hub waiting for deamons on ", *hubAddr)
 
-	go server.DeamonHub(*hubAddr)
+	// Start hub rcp server
+	hub := server.NewHub(*hubAddr)
+	go hub.Serve()
 
-	http.HandleFunc("/ui", server.OnUISocket)
+	// Start websocket server for ui
+	http.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
+		server.OnUISocket(hub, w, r)
+	})
 
 	log.Fatal(http.ListenAndServe(*uiAddr, nil))
 }

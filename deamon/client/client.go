@@ -18,10 +18,10 @@ func RegisterOnHub(hubAddr string) {
 
 	resp, err := c.Call("foobar")
 	if err != nil {
-		log.Fatalf("Error when sending request to hub: %s", err)
+		log.Fatalf("error when sending request to hub: %s", err)
 	}
-	if resp.(string) != "foobar" {
-		log.Fatalf("Unexpected response from the hub: %+v", resp)
+	if resp.(string) != "ok" {
+		log.Fatalf("expected the hub to answer with ok. he did not: %+v", resp)
 	}
 }
 
@@ -35,6 +35,6 @@ func DeamonServer(port string) {
 		},
 	}
 	if err := s.Serve(); err != nil {
-		log.Fatalf("Cannot start deamon server: %s", err)
+		log.Fatalf("cannot start deamon server: %s", err)
 	}
 }

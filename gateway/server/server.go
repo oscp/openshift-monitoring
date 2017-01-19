@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"log"
 	"github.com/gorilla/websocket"
+	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
 )
 
 var upgrader = websocket.Upgrader{
@@ -12,12 +13,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type GuiRequest struct {
-	Type string
-	Message string
-}
-
-func OnUISocket(w http.ResponseWriter, r *http.Request) {
+func OnUISocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	log.Println("new connection from UI")
 
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -27,9 +23,25 @@ func OnUISocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 
+	// handle message from the ui
+	go handleFromUI(c)
+
+	// handle messages to the ui
+	go handleToUI(hub)
+
+}
+
+func handleToUI(hub *Hub) {
+	for {
+		var msg models.BaseModel = <-hub.toUi
+		log.Println("should send this to client: ", msg.Type.Name, msg.Message)
+	}
+}
+
+func handleFromUI(c *websocket.Conn) {
 	for {
 		// parse message
-		var msg GuiRequest
+		var msg models.BaseModel
 		err := c.ReadJSON(&msg)
 		if err != nil {
 			log.Println("read-error on ws: ", err)
@@ -39,16 +51,16 @@ func OnUISocket(w http.ResponseWriter, r *http.Request) {
 		log.Println("new message from client: ", msg.Type, msg.Message)
 
 		var res interface{}
-		switch msg.Type {
-		case "getKeywords":
-			break
-		case "getResults":
-			break
-		case "newKeyword":
-			break
-		case "deleteKeyword" :
-			break
-		}
+		//switch msg.Type {
+		//case "getDeamons":
+		//	break
+		//case "getResults":
+		//	break
+		//case "newKeyword":
+		//	break
+		//case "deleteKeyword" :
+		//	break
+		//}
 
 		err = c.WriteJSON(res)
 		if err != nil {

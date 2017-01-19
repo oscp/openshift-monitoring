@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/valyala/gorpc"
 	"log"
+	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
 )
 
 type Deamon struct {
@@ -10,20 +11,36 @@ type Deamon struct {
 }
 
 type Hub struct {
-	deamons []Deamon
+	hubAddr string
+
+	deamons   []Deamon
+
+	// send things to deamons
+	toDeamons chan []byte
+
+	// send things to ui
+	toUi      chan models.BaseModel
 }
 
-var hub = &Hub{
-	deamons: []Deamon{},
+func NewHub(hubAddr string) *Hub {
+	return &Hub{
+		deamons: []Deamon{},
+		toDeamons: make(chan []byte),
+		toUi: make(chan models.BaseModel, 1000),
+		hubAddr: hubAddr,
+	}
 }
 
-func DeamonHub(hubAddr string) {
+func (h *Hub) Serve() {
 	s := &gorpc.Server{
-		Addr: hubAddr,
+		Addr: h.hubAddr,
 		Handler: func(clientAddr string, request interface{}) interface{} {
 			log.Printf("new deamon joined, %+v, %s\n", request, clientAddr)
-			hub.deamons = append(hub.deamons, Deamon{ addr: clientAddr })
-			return request
+			h.deamons = append(h.deamons, Deamon{addr: clientAddr })
+
+			// tell the ui about it
+			h.toUi <- models.BaseModel{ Type: models.TYPE_NEW_DEAMON, Message: clientAddr }
+			return "ok"
 		},
 	}
 	if err := s.Serve(); err != nil {
