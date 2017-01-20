@@ -7,7 +7,7 @@ import (
 )
 
 type Deamon struct {
-	addr string
+	Addr string
 }
 
 type Hub struct {
@@ -36,10 +36,12 @@ func (h *Hub) Serve() {
 		Addr: h.hubAddr,
 		Handler: func(clientAddr string, request interface{}) interface{} {
 			log.Printf("new deamon joined, %+v, %s\n", request, clientAddr)
-			h.deamons = append(h.deamons, Deamon{addr: clientAddr })
+
+			n := Deamon{Addr: clientAddr}
+			h.deamons = append(h.deamons, n)
 
 			// tell the ui about it
-			h.toUi <- models.BaseModel{ Type: models.TYPE_NEW_DEAMON, Message: clientAddr }
+			h.toUi <- models.BaseModel{ Type: models.TYPE_NEW_DEAMON, Message: n}
 			return "ok"
 		},
 	}

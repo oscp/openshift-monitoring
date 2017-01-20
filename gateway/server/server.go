@@ -13,36 +13,35 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func OnUISocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	log.Println("new connection from UI")
+func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
+	log.Println("ui joined by websockets")
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrade-error: ", err)
 		return
 	}
-	defer c.Close()
 
 	// handle message from the ui
-	go handleFromUI(c)
+	go handleFromUI(h, c)
 
 	// handle messages to the ui
-	go handleToUI(hub)
+	go handleToUI(h, c)
 }
 
-func handleToUI(hub *Hub) {
+func handleToUI(h *Hub, c *websocket.Conn) {
 	for {
-		log.Println("waiting for data to send to the UI")
+		var msg models.BaseModel = <-h.toUi
 
-		var msg models.BaseModel = <-hub.toUi
-		log.Println("should send this to client: ", msg.Type.Name, msg.Message)
+		err := c.WriteJSON(msg)
+		if err != nil {
+			log.Println("error sending message to UI on websocket: ", err)
+		}
 	}
 }
 
-func handleFromUI(c *websocket.Conn) {
+func handleFromUI(h *Hub, c *websocket.Conn) {
 	for {
-		log.Println("UI joined. Waiting for messages from UI")
-
 		// parse message
 		var msg models.BaseModel
 		err := c.ReadJSON(&msg)
@@ -51,24 +50,16 @@ func handleFromUI(c *websocket.Conn) {
 			break
 		}
 
-		log.Println("new message from client: ", msg.Type, msg.Message)
-
 		var res interface{}
-		//switch msg.Type {
-		//case "getDeamons":
-		//	break
-		//case "getResults":
-		//	break
-		//case "newKeyword":
-		//	break
-		//case "deleteKeyword" :
-		//	break
-		//}
+		switch msg.Type {
+		case models.TYPE_ALL_DEAMONS:
+			res = models.BaseModel{ Type: models.TYPE_ALL_DEAMONS, Message: h.deamons}
+			break
+		}
 
 		err = c.WriteJSON(res)
 		if err != nil {
-			log.Println("write-error: ", err)
-			break
+			log.Println("error sending message to UI on websocket: ", err)
 		}
 	}
 }
