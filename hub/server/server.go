@@ -24,6 +24,7 @@ func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
 
 	go handleFromUI(h, c)
 	go handleToUI(h, c)
+	log.Println("exit")
 }
 
 func handleToUI(h *Hub, c *websocket.Conn) {
@@ -50,7 +51,7 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 		var res interface{}
 		switch msg.Type {
 		case models.TYPE_ALL_DEAMONS:
-			res = models.BaseModel{ Type: models.TYPE_ALL_DEAMONS, Message: h.deamons}
+			res = models.BaseModel{ Type: models.TYPE_ALL_DEAMONS, Message: h.Deamons()}
 			break
 		}
 

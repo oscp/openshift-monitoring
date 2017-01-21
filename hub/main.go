@@ -4,16 +4,14 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/gateway/server"
+	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/hub/server"
 )
 
 var uiAddr = flag.String("uiAddr", "localhost:8080", "http service endpoint")
-var hubAddr = flag.String("hubAddr", "localhost:2600", "go hub rcp address")
+var hubAddr = flag.String("hubAddr", "localhost:2600", "go hub rcp2 address")
 
 func main() {
 	flag.Parse()
-	log.SetFlags(0)
-
 	log.Println("hub waiting for deamons on ", *hubAddr)
 	log.Println("ui server waiting for websocket on ", *uiAddr)
 

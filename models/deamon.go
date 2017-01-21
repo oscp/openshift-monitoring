@@ -1,7 +1,13 @@
 package models
 
+import "github.com/cenkalti/rpc2"
+
 type Deamon struct {
-	Addr string
+	Hostname string
 	DeamonType string
-	Port int
+}
+
+type DeamonClient struct {
+	Deamon Deamon
+	Client *rpc2.Client
 }

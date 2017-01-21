@@ -1,55 +1,47 @@
 package client
 
 import (
-	"github.com/valyala/gorpc"
 	"log"
+	"net"
+	"github.com/cenkalti/rpc2"
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
-	"strconv"
+	"os"
 )
 
-var c *gorpc.Client
-
-func RegisterOnHub(h string, dt string, p int) *gorpc.Client {
-	log.Println("trying to contact hub on: ", h)
+func RegisterOnHub(h string, dt string) *rpc2.Client {
+	log.Println("registring on hub:", h)
 
 	// Register on hub
-	gorpc.RegisterType(&models.Deamon{})
-	c = &gorpc.Client{
-		Addr: h,
-	}
-	c.Start()
+	conn, _ := net.Dial("tcp", h)
+	c := rpc2.NewClient(conn)
+	c.Handle("job", func(client *rpc2.Client, args *string, reply *string) error {
+		log.Println("new job from server", args)
+		return nil
+	})
+	go c.Run()
 
-	resp, err := c.Call(models.Deamon{Addr: h, DeamonType: dt, Port: p})
+	var rep string
+	host, _ := os.Hostname()
+	err := c.Call("register", models.Deamon{Hostname: host, DeamonType: dt}, &rep)
 	if err != nil {
-		log.Fatalf("error when sending request to hub: %s", err)
+		log.Fatal("error registring on hub: ", err)
 	}
-	if resp.(string) != "ok" {
-		log.Fatalf("expected the hub to answer with ok. he did not: %+v", resp)
+	if rep != "ok" {
+		log.Fatalf("expected the hub to answer with ok. he did with: %+v", rep)
 	}
 
 	return c
 }
 
-func UnregisterOnHub(c *gorpc.Client) {
+func UnregisterOnHub(c *rpc2.Client) {
 	log.Println("unregistring from hub")
 
-	_, err := c.Call("unregister")
+	var rep string
+	host, _ := os.Hostname()
+	err := c.Call("unregister", host, &rep)
 	if err != nil {
 		log.Fatalf("error when unregistring from hub: %s", err)
 	}
-	c.Stop()
+	c.Close()
 }
 
-func DeamonServer(p int) {
-	log.Println("creating deamon server on port: ", p)
-	s := &gorpc.Server{
-		Addr: ":" + strconv.Itoa(p),
-		Handler: func(clientAddr string, request interface{}) interface{} {
-			log.Printf("new job from hub: ", request)
-			return request
-		},
-	}
-	if err := s.Serve(); err != nil {
-		log.Fatalf("cannot start deamon server: %s", err)
-	}
-}

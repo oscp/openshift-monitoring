@@ -6,6 +6,7 @@ import { HttpModule } from '@angular/http';
 import { AppComponent } from './app.component';
 import { DeamonOverviewComponent } from './deamon-overview/deamon-overview.component';
 import {SocketService} from "./socket.service";
+import {SimpleNotificationsModule} from 'angular2-notifications';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import {SocketService} from "./socket.service";
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
+    SimpleNotificationsModule
   ],
   providers: [SocketService],
   bootstrap: [AppComponent]

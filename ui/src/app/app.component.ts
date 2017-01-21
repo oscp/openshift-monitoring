@@ -5,6 +5,7 @@ import { Component } from '@angular/core';
   template:  `
         <h3>OpenShift - Updatemonitoring</h3>
         <app-deamon-overview></app-deamon-overview>
+        <simple-notifications></simple-notifications>
     `
 })
 export class AppComponent {
