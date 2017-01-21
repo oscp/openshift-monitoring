@@ -6,25 +6,16 @@ import (
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
 )
 
-type Deamon struct {
-	Addr string
-}
-
 type Hub struct {
 	hubAddr string
-
-	deamons   []Deamon
-
-	// send things to deamons
+	deamons   map[string]models.Deamon
 	toDeamons chan []byte
-
-	// send things to ui
 	toUi      chan models.BaseModel
 }
 
 func NewHub(hubAddr string) *Hub {
 	return &Hub{
-		deamons: []Deamon{},
+		deamons: make(map[string]models.Deamon),
 		toDeamons: make(chan []byte),
 		toUi: make(chan models.BaseModel, 1000),
 		hubAddr: hubAddr,
@@ -32,16 +23,23 @@ func NewHub(hubAddr string) *Hub {
 }
 
 func (h *Hub) Serve() {
+	// register models
+	gorpc.RegisterType(&models.Deamon{})
+
 	s := &gorpc.Server{
 		Addr: h.hubAddr,
-		Handler: func(clientAddr string, request interface{}) interface{} {
-			log.Printf("new deamon joined, %+v, %s\n", request, clientAddr)
+		Handler: func(clientAddr string, r interface{}) interface{} {
+			switch v := r.(type) {
+			case *models.Deamon:
+				deamonJoin(h, clientAddr, v)
+				break;
+			case string:
+				deamonLeave(h, clientAddr)
+				break;
+			default:
+				log.Println("unknown type on rpc ", r, v)
+			}
 
-			n := Deamon{Addr: clientAddr}
-			h.deamons = append(h.deamons, n)
-
-			// tell the ui about it
-			h.toUi <- models.BaseModel{ Type: models.TYPE_NEW_DEAMON, Message: n}
 			return "ok"
 		},
 	}

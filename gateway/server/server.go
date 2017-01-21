@@ -22,10 +22,7 @@ func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// handle message from the ui
 	go handleFromUI(h, c)
-
-	// handle messages to the ui
 	go handleToUI(h, c)
 }
 
