@@ -16,7 +16,15 @@ export class SocketService {
                 (observer: Observer<MessageEvent>) => {
                     socket.onmessage = observer.next.bind(observer);
                     socket.onerror = observer.error.bind(observer);
-                    socket.onclose = observer.complete.bind(observer);
+                    socket.onclose = () => {
+                      setTimeout(
+                        () => {
+                          that.existingSocket = undefined;
+                          that.createOrGetWebsocket();
+                        }
+                        , 10000
+                      )
+                    }
                     return socket.close.bind(socket);
                 }
             );

@@ -5,6 +5,8 @@ import (
 	"log"
 	"github.com/gorilla/websocket"
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"os"
+	"runtime/pprof"
 )
 
 var upgrader = websocket.Upgrader{
@@ -14,7 +16,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
-	log.Println("ui joined by websockets")
+	log.Println("ui joined")
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -24,7 +26,6 @@ func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
 
 	go handleFromUI(h, c)
 	go handleToUI(h, c)
-	log.Println("exit")
 }
 
 func handleToUI(h *Hub, c *websocket.Conn) {
@@ -49,9 +50,9 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 		}
 
 		var res interface{}
-		switch msg.Type {
-		case models.TYPE_ALL_DEAMONS:
-			res = models.BaseModel{ Type: models.TYPE_ALL_DEAMONS, Message: h.Deamons()}
+		switch msg.WsType {
+		case models.WS_ALL_DEAMONS:
+			res = models.BaseModel{ WsType: models.WS_ALL_DEAMONS, Message: h.Deamons()}
 			break
 		}
 

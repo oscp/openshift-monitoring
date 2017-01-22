@@ -16,6 +16,7 @@ func RegisterOnHub(h string, dt string) *rpc2.Client {
 	c := rpc2.NewClient(conn)
 	c.Handle("job", func(client *rpc2.Client, args *string, reply *string) error {
 		log.Println("new job from server", args)
+
 		return nil
 	})
 	go c.Run()

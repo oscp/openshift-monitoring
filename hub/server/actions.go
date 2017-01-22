@@ -10,7 +10,7 @@ func deamonLeave(h *Hub, host string) {
 	log.Println("deamon left: ", host)
 	delete(h.deamons, host)
 
-	h.toUi <- models.BaseModel{Type: models.TYPE_DEAMON_LEFT, Message: host}
+	h.toUi <- models.BaseModel{WsType: models.WS_DEAMON_LEFT, Message: host}
 }
 
 func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
@@ -18,6 +18,5 @@ func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 
 	h.deamons[d.Hostname] = models.DeamonClient{Client:c, Deamon: *d}
 
-	// tell the ui about it
-	h.toUi <- models.BaseModel{Type: models.TYPE_NEW_DEAMON, Message: d.Hostname}
+	h.toUi <- models.BaseModel{WsType: models.WS_NEW_DEAMON, Message: d.Hostname}
 }

@@ -30,7 +30,7 @@ export class DeamonOverviewComponent implements OnInit {
 
   constructor(private socketService: SocketService, private notificationService: NotificationsService) {
     this.socket = socketService.createOrGetWebsocket();
-    this.socket.next({Type: SocketType.ALL_DEAMONS});
+    this.getDeamons();
   }
 
   ngOnInit() {
@@ -38,21 +38,25 @@ export class DeamonOverviewComponent implements OnInit {
       message => {
         let data = JSON.parse(message.data);
 
-        console.log(data.Type.Name, data.Message);
+        console.log(data.WsType, data.Message);
 
-        switch (data.Type.Name) {
-          case SocketType.ALL_DEAMONS.Name:
+        switch (data.WsType) {
+          case SocketType.WS_ALL_DEAMONS:
             this.deamons = data.Message;
             break;
-          case SocketType.NEW_DEAMON.Name:
+          case SocketType.WS_NEW_DEAMON:
             this.notificationService.info("Deamon joined", "New deamon joined: " + data.Message);
-            this.socket.next({Type: SocketType.ALL_DEAMONS});
+            this.getDeamons();
             break;
-          case SocketType.DEAMON_LEFT.Name:
-            this.notificationService.info("Deamon left" , "Deamon left: " + data.Message);
-            this.socket.next({Type: SocketType.ALL_DEAMONS});
+          case SocketType.WS_DEAMON_LEFT:
+            this.notificationService.info("Deamon left", "Deamon left: " + data.Message);
+            this.getDeamons();
         }
       }
     );
+  }
+
+  getDeamons() {
+    this.socket.next({WsType: SocketType.WS_ALL_DEAMONS});
   }
 }

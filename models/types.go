@@ -1,0 +1,14 @@
+package models
+
+// Job types
+const (
+	JOB_HTTP_CHECK = "HTTP_CHECK"
+	JOB_DNS_NSLOOKUP_CHECK = "DNS_NSLOOKUP_CHECK"
+)
+
+// Websocket types
+const (
+	WS_NEW_DEAMON = "NEW_DEAMON"
+	WS_ALL_DEAMONS = "ALL_DEAMONS"
+	WS_DEAMON_LEFT = "DEAMON_LEFT"
+)

@@ -12,6 +12,7 @@ type Hub struct {
 	deamons   map[string]models.DeamonClient
 	toDeamons chan []byte
 	toUi      chan models.BaseModel
+	uiLeave   chan struct{}
 }
 
 func NewHub(hubAddr string) *Hub {
@@ -20,12 +21,13 @@ func NewHub(hubAddr string) *Hub {
 		toDeamons: make(chan []byte),
 		toUi: make(chan models.BaseModel, 1000),
 		hubAddr: hubAddr,
+		uiLeave: make(chan struct{}),
 	}
 }
 
 func (h *Hub) Deamons() []models.Deamon {
 	r := []models.Deamon{}
-	for _,d := range h.deamons {
+	for _, d := range h.deamons {
 		r = append(r, d.Deamon)
 	}
 	return r

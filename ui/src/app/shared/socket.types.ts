@@ -1,5 +1,5 @@
 export class SocketType {
-    static ALL_DEAMONS = {Name: "ALL_DEAMONS"};
-    static NEW_DEAMON = {Name: "NEW_DEAMON"};
-    static DEAMON_LEFT = {Name: "DEAMON_LEFT"};
+    static WS_ALL_DEAMONS =  "ALL_DEAMONS";
+    static WS_NEW_DEAMON = "NEW_DEAMON";
+    static WS_DEAMON_LEFT = "DEAMON_LEFT";
 }
