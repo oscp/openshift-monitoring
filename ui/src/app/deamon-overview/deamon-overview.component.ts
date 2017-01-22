@@ -37,8 +37,7 @@ export class DeamonOverviewComponent implements OnInit {
     this.socket.subscribe(
       message => {
         let data = JSON.parse(message.data);
-
-        console.log(data.WsType, data.Message);
+        console.log('now')
 
         switch (data.WsType) {
           case SocketType.WS_ALL_DEAMONS:

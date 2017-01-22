@@ -13,7 +13,12 @@ func RegisterOnHub(h string, dt string) *rpc2.Client {
 	conn, _ := net.Dial("tcp", h)
 	c := rpc2.NewClient(conn)
 	c.Handle("startJob", func(client *rpc2.Client, job *models.Job, reply *string) error {
-		startJob(client, job)
+		startJob(job)
+		*reply = "ok"
+		return nil
+	})
+	c.Handle("stopJob", func(client *rpc2.Client, jobId *int64, reply *string) error {
+		stopJob(jobId)
 		*reply = "ok"
 		return nil
 	})
