@@ -5,8 +5,6 @@ import (
 	"log"
 	"github.com/gorilla/websocket"
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
-	"os"
-	"runtime/pprof"
 )
 
 var upgrader = websocket.Upgrader{
@@ -34,7 +32,9 @@ func handleToUI(h *Hub, c *websocket.Conn) {
 
 		err := c.WriteJSON(msg)
 		if err != nil {
-			log.Println("error sending message to UI on websocket: ", err)
+			log.Println("socket to UI was closed, resending message", err)
+			h.toUi <- msg
+			break
 		}
 	}
 }
