@@ -54,6 +54,8 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 		case models.WS_ALL_DEAMONS:
 			res = models.BaseModel{ WsType: models.WS_ALL_DEAMONS, Message: h.Deamons()}
 			break
+		case models.WS_NEW_JOB:
+			res = newJob(h, msg.Message)
 		}
 
 		err = c.WriteJSON(res)

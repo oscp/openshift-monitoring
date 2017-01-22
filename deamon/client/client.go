@@ -9,18 +9,18 @@ import (
 )
 
 func RegisterOnHub(h string, dt string) *rpc2.Client {
-	log.Println("registring on hub:", h)
-
 	// Register on hub
 	conn, _ := net.Dial("tcp", h)
 	c := rpc2.NewClient(conn)
-	c.Handle("job", func(client *rpc2.Client, args *string, reply *string) error {
-		log.Println("new job from server", args)
-
+	c.Handle("startJob", func(client *rpc2.Client, job *models.Job, reply *string) error {
+		startJob(client, job)
+		*reply = "ok"
 		return nil
 	})
 	go c.Run()
 
+	// Register on hub
+	log.Println("registring on hub:", h)
 	var rep string
 	host, _ := os.Hostname()
 	err := c.Call("register", models.Deamon{Hostname: host, DeamonType: dt}, &rep)

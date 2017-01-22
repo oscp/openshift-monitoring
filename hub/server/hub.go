@@ -10,18 +10,20 @@ import (
 type Hub struct {
 	hubAddr   string
 	deamons   map[string]models.DeamonClient
-	toDeamons chan []byte
+	jobs	  []models.Job
+	lastJobId int64
+	toDeamons chan models.Job
 	toUi      chan models.BaseModel
-	uiLeave   chan struct{}
 }
 
 func NewHub(hubAddr string) *Hub {
 	return &Hub{
-		deamons: make(map[string]models.DeamonClient),
-		toDeamons: make(chan []byte),
-		toUi: make(chan models.BaseModel, 1000),
 		hubAddr: hubAddr,
-		uiLeave: make(chan struct{}),
+		deamons: make(map[string]models.DeamonClient),
+		jobs: []models.Job{},
+		lastJobId: 0,
+		toDeamons: make(chan models.Job),
+		toUi: make(chan models.BaseModel, 1000),
 	}
 }
 
@@ -34,6 +36,8 @@ func (h *Hub) Deamons() []models.Deamon {
 }
 
 func (h *Hub) Serve() {
+	go handleToDeamons(h)
+
 	srv := rpc2.NewServer()
 	srv.Handle("register", func(c *rpc2.Client, d *models.Deamon, reply *string) error {
 
@@ -54,4 +58,18 @@ func (h *Hub) Serve() {
 	if err != nil {
 		log.Fatalf("Cannot start rpc2 server: %s", err)
 	}
+}
+
+func handleToDeamons(h *Hub) {
+	log.Println("ready to send jobs to deamons")
+	for {
+		var job models.Job = <- h.toDeamons
+
+		for _,d := range h.deamons {
+			if err := d.Client.Call("startJob", job, nil); err != nil {
+				log.Println("error starting job on deamon", err)
+			}
+		}
+	}
+
 }
