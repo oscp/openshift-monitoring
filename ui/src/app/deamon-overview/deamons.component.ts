@@ -1,5 +1,4 @@
 import {Component, OnInit} from '@angular/core';
-import {Subject} from 'rxjs';
 import {SocketService} from '../socket.service';
 import {SocketType} from '../shared/socket.types';
 import {NotificationsService} from 'angular2-notifications';
@@ -24,20 +23,17 @@ import {NotificationsService} from 'angular2-notifications';
         </table>
     `
 })
-export class DeamonOverviewComponent implements OnInit {
-  private socket: Subject<any>;
+export class DeamonsComponent implements OnInit {
   private deamons: any;
 
   constructor(private socketService: SocketService, private notificationService: NotificationsService) {
-    this.socket = socketService.createOrGetWebsocket();
     this.getDeamons();
   }
 
   ngOnInit() {
-    this.socket.subscribe(
-      message => {
-        let data = JSON.parse(message.data);
-        console.log('now')
+    this.socketService.websocket.subscribe(
+      msg => {
+        let data = JSON.parse(msg.data);
 
         switch (data.WsType) {
           case SocketType.WS_ALL_DEAMONS:
@@ -56,6 +52,6 @@ export class DeamonOverviewComponent implements OnInit {
   }
 
   getDeamons() {
-    this.socket.next({WsType: SocketType.WS_ALL_DEAMONS});
+    this.socketService.websocket.next({WsType: SocketType.WS_ALL_DEAMONS});
   }
 }

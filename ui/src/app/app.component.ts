@@ -6,8 +6,13 @@ import { Component } from '@angular/core';
         <h3>OpenShift - Updatemonitoring</h3>
         <app-deamon-overview></app-deamon-overview>
         <app-job></app-job>
-        <simple-notifications></simple-notifications>
+        <simple-notifications [options]="notificationOptions"></simple-notifications>
     `
 })
 export class AppComponent {
+  private notificationOptions = {
+    position: ["top", "right"],
+    timeOut: 3000,
+    showProgressBar: true
+  }
 }

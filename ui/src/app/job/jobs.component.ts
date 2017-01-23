@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {SocketService} from '../socket.service';
 import {SocketType} from '../shared/socket.types';
-import {Subject} from 'rxjs';
 import {JobType} from '../shared/job.types';
 import {NotificationsService} from 'angular2-notifications';
 
@@ -33,19 +32,17 @@ import {NotificationsService} from 'angular2-notifications';
         </table>
     `
 })
-export class JobComponent implements OnInit {
-  private socket: Subject<any>;
+export class JobsComponent implements OnInit {
   private jobs: Array<any>;
 
   constructor(private socketService: SocketService, private notificationService: NotificationsService) {
-    this.socket = socketService.createOrGetWebsocket();
     this.getJobs();
   }
 
   ngOnInit() {
-    this.socket.subscribe(
-      message => {
-        let data = JSON.parse(message.data);
+    this.socketService.websocket.subscribe(
+      msg => {
+        let data = JSON.parse(msg.data);
 
         console.log(data.WsType, data.Message);
 
@@ -66,7 +63,7 @@ export class JobComponent implements OnInit {
   }
 
   newHttpCheck() {
-    this.socket.next({
+    this.socketService.websocket.next({
       WsType: SocketType.WS_NEW_JOB,
       Message: {
         JobType: JobType.JOB_HTTP_CHECK,
@@ -76,7 +73,7 @@ export class JobComponent implements OnInit {
   }
 
   stopJob(jobId) {
-    this.socket.next({
+    this.socketService.websocket.next({
       WsType: SocketType.WS_JOB_STOP,
       Message: {
         JobId: jobId
@@ -85,7 +82,6 @@ export class JobComponent implements OnInit {
   }
 
   getJobs() {
-    this.socket.next({WsType: SocketType.WS_ALL_JOBS});
+    this.socketService.websocket.next({WsType: SocketType.WS_ALL_JOBS});
   }
-
 }

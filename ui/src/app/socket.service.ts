@@ -1,44 +1,43 @@
 import {Injectable} from '@angular/core';
-import {Subject, Observer, Observable} from 'rxjs/Rx';
+import {Observer, Observable, Subject} from 'rxjs/Rx';
 
 @Injectable()
 export class SocketService {
-    private existingSocket: Subject<any>;
+    public websocket: Subject<any>;
 
     constructor() {
+      this.connectToUI();
     }
 
-    public createOrGetWebsocket(): Subject<MessageEvent> {
-        const that = this;
-        if (!this.existingSocket) {
-            let socket = new WebSocket('ws://localhost:8080/ui');
-            let observable = Observable.create(
-                (observer: Observer<MessageEvent>) => {
-                    socket.onmessage = observer.next.bind(observer);
-                    socket.onerror = observer.error.bind(observer);
-                    socket.onclose = () => {
-                      setTimeout(
-                        () => {
-                          that.existingSocket = undefined;
-                          that.createOrGetWebsocket();
-                        }
-                        , 10000
-                      )
-                    }
-                    return socket.close.bind(socket);
-                }
-            );
-            let observer = {
-                next: (data: Object) => {
-                    that.waitForSocketConnection(socket, () => {
-                        socket.send(JSON.stringify(data));
-                    });
-                }
-            };
-
-            this.existingSocket = Subject.create(observer, observable);
+    private connectToUI() {
+      let that = this;
+      let socket = new WebSocket('ws://localhost:8080/ui');
+      let observable = Observable.create(
+        (observer: Observer<MessageEvent>) => {
+          socket.onmessage = observer.next.bind(observer);
+          socket.onerror = observer.error.bind(observer);
+          socket.onclose = () => {
+            setTimeout(
+              () => {
+                that.websocket = undefined;
+                that.connectToUI();
+              }
+              , 10000
+            )
+          }
+          return socket.close.bind(socket);
         }
-        return this.existingSocket;
+      ).share();
+
+      let observer = {
+        next: (data: Object) => {
+          that.waitForSocketConnection(socket, () => {
+            socket.send(JSON.stringify(data));
+          });
+        }
+      };
+
+      this.websocket = Subject.create(observer, observable);
     }
 
     private waitForSocketConnection(socket, callback) {
