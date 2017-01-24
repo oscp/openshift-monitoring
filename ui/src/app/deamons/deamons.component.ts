@@ -12,7 +12,7 @@ import {NotificationsService} from 'angular2-notifications';
                 <tr>
                 <th>Hostname</th>
                 <th>Type</th>
-                <th>Checks running</th>
+                <th>Checks ran</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,7 +36,6 @@ export class DeamonsComponent implements OnInit {
     this.socketService.websocket.subscribe(
       msg => {
         let data = JSON.parse(msg.data);
-
         switch (data.Type) {
           case SocketType.ALL_DEAMONS:
             this.deamons = data.Message;

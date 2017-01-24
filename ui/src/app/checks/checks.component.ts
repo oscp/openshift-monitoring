@@ -9,7 +9,8 @@ import {SocketType} from "../shared/socket.types";
     <div class="form-group row">
         <label for="masterapi" class="col-sm-2 col-form-label">Master-API-URLs</label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" id="masterapi" placeholder="http://yourapi:8443">
+            <input type="text" class="form-control" name="masterapiurl" id="masterapiurl" 
+                    [(ngModel)]="checks.MasterApiUrl">
         </div>
     </div>
     <div class="row form-group">
@@ -52,11 +53,9 @@ export class ChecksComponent implements OnInit {
         this.socketService.websocket.subscribe(
             msg => {
                 let data = JSON.parse(msg.data);
-
                 switch (data.Type) {
                     case SocketType.CURRENT_CHECKS:
                         this.checks = data.Message;
-                        console.log(this.checks);
                         break;
                 }
             }

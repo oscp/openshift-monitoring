@@ -1,44 +1,50 @@
 package client
 
 import (
-	"net/http/httptest"
 	"net/http"
 	"log"
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"time"
+	"strings"
 )
 
 func startChecks(dc *models.DeamonClient, checks *models.Checks) {
-	log.Println("starting new checks", checks)
+	tick := time.Tick(1 * time.Second)
 
-	dc.Deamon.ChecksCount++
-	updateChecksCount(dc)
+	go func() {
+		for {
+			select {
+			case <-dc.Quit:
+				log.Println("stopped all checks")
+				updateChecksCount(dc, true)
+				return
+			case <-tick:
+				if (checks.MasterApiCheck) {
+					updateChecksCount(dc, false)
+					go checkMasterApis(dc, checks.MasterApiUrl)
+				}
+			default:
+				time.Sleep(50 * time.Millisecond)
+			}
+		}
+	}()
 }
 
 func stopChecks(dc *models.DeamonClient) {
-	log.Println("stopping all checks")
-
-	if (dc.Deamon.ChecksCount > 0) {
-		dc.Deamon.ChecksCount--
-	}
-	updateChecksCount(dc)
+	dc.Quit <- true
 }
 
-func updateChecksCount(dc *models.DeamonClient) {
-	var rep string
-	err := dc.Client.Call("updateCheckcount", dc.Deamon, &rep)
-	if err != nil {
-		log.Fatal("error updating ChecksCount on hub: ", err)
-	}
-}
+func checkMasterApis(dc *models.DeamonClient, urls string) {
+ 	urlArr := strings.Split(urls, ",")
 
-func checkHttpConnection(url string) {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "something failed", http.StatusInternalServerError)
+	oneApiOk := false
+	for _,u := range urlArr {
+		_, err := http.Get(u)
+		if (err == nil) {
+			oneApiOk = true
+		}
 	}
 
-	req := httptest.NewRequest("GET", url, nil)
-	w := httptest.NewRecorder()
-	handler(w, req)
-
-	log.Printf("%d - %s", w.Code, w.Body.String())
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: ""}
 }

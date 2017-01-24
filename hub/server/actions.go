@@ -23,7 +23,6 @@ func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 }
 
 func updateCheckcount(h *Hub, d *models.Deamon) {
-	log.Println("getting count update", d)
 	h.deamons[d.Hostname].Deamon.ChecksCount = d.ChecksCount
 
 	// Tell the UI about it

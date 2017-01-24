@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Register on hub
-	cl := client.RegisterOnHub(hubAddr, deamonType)
+	cl := client.StartDeamon(hubAddr, deamonType)
 
 	// Exit gracefully
 	c := make(chan os.Signal, 2)
@@ -26,7 +26,7 @@ func main() {
 	func() {
 		<-c
 		log.Println("got sigterm, unregistring on hub")
-		client.UnregisterOnHub(cl)
+		client.StopDeamon(cl)
 		os.Exit(1)
 	}()
 }

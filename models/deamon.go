@@ -11,4 +11,6 @@ type Deamon struct {
 type DeamonClient struct {
 	Deamon Deamon
 	Client *rpc2.Client
+	Quit   chan bool
+	ToHub  chan CheckResult
 }

@@ -10,3 +10,8 @@ const (
 	START_CHECKS = "START_CHECKS"
 	STOP_CHECKS = "STOP_CHECKS"
 )
+
+// Check types
+const (
+	MASTER_API_CHECK = "MASTER_API_CHECK"
+)
