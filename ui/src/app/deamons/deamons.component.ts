@@ -19,7 +19,7 @@ import {NotificationsService} from 'angular2-notifications';
                 <tr *ngFor='let d of deamons'>
                     <td>{{d.Hostname}}</td>
                     <td>{{d.DeamonType}}</td>
-                    <td>{{d | json}}</td>
+                    <td>{{d.ChecksCount}}</td>
                 </tr>
             </tbody>
         </table>

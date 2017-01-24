@@ -60,6 +60,8 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 		case models.STOP_CHECKS:
 			res = stopChecks(h)
 			break
+		case models.CURRENT_CHECKS:
+			res = models.BaseModel{Type:models.CURRENT_CHECKS, Message: h.currentChecks}
 		}
 
 		err = c.WriteJSON(res)

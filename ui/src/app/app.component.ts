@@ -2,17 +2,19 @@ import {Component} from '@angular/core';
 
 @Component({
     selector: 'app-root',
-    template: `<br/><div class="container-fluid">
+    template: `
+<br/><div class='container-fluid'>
     <h3>OpenShift - Updatemonitoring</h3>
+    <simple-notifications [options]='notificationOptions'></simple-notifications>
     <app-deamon-overview></app-deamon-overview>
-    <simple-notifications [options]="notificationOptions"></simple-notifications>
+    <app-checks></app-checks>
 </div>
     `
 })
 export class AppComponent {
-    private notificationOptions = {
-        position: ["top", "right"],
+    notificationOptions = {
+        position: ['top', 'right'],
         timeOut: 3000,
         showProgressBar: true
-    }
+    };
 }

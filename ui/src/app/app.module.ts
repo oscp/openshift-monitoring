@@ -6,11 +6,13 @@ import {AppComponent} from './app.component';
 import {SocketService} from './socket.service';
 import {SimpleNotificationsModule} from 'angular2-notifications';
 import {DeamonsComponent} from './deamons/deamons.component';
+import { ChecksComponent } from './checks/checks.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    DeamonsComponent
+    DeamonsComponent,
+    ChecksComponent
   ],
   imports: [
     BrowserModule,

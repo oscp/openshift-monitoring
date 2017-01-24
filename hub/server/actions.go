@@ -31,16 +31,16 @@ func startChecks(h *Hub, msg interface{}) models.BaseModel {
 	h.startChecks <- checks
 
 	// Return ok to UI
-	return models.BaseModel{Type: models.START_CHECKS, Message: "ok"}
+	return models.BaseModel{Type: models.CURRENT_CHECKS, Message: checks}
 }
 
 func stopChecks(h *Hub) models.BaseModel {
 	// Save current state & tell deamons
-	h.currentChecks = models.Checks{IsRunning:false}
+	h.currentChecks.IsRunning = false
 	h.stopChecks <- true
 
 	// Return ok to UI
-	return models.BaseModel{Type: models.STOP_CHECKS, Message: "ok"}
+	return models.BaseModel{Type: models.CURRENT_CHECKS, Message: h.currentChecks}
 }
 
 func getChecksStruct(msg interface{}) models.Checks {

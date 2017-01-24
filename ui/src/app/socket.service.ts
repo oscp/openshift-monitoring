@@ -23,7 +23,7 @@ export class SocketService {
                             that.websocket = undefined;
                             that.connectToUI();
                         }
-                        , 10000
+                        , 4000
                     );
                 };
                 return socket.close.bind(socket);

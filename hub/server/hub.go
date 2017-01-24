@@ -63,8 +63,6 @@ func (h *Hub) Serve() {
 func handleChecksStart(h *Hub) {
 	for {
 		var checks models.Checks = <-h.startChecks
-		log.Println("Sending to deamons", checks)
-
 		for _, d := range h.deamons {
 			if err := d.Client.Call("startChecks", checks, nil); err != nil {
 				log.Println("error starting checks on deamon", err)
@@ -78,7 +76,6 @@ func handleChecksStop(h *Hub) {
 		var stop bool = <-h.stopChecks
 
 		if (stop) {
-			log.Println("Sending stop command to deamons")
 			for _, d := range h.deamons {
 				if err := d.Client.Call("stopChecks", stop, nil); err != nil {
 					log.Println("error stopping checks on deamon", err)
