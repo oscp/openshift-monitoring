@@ -1,6 +1,6 @@
 package models
 
 type BaseModel struct {
-	WsType  string
+	Type    string
 	Message interface{}
 }

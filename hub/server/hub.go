@@ -8,23 +8,20 @@ import (
 )
 
 type Hub struct {
-	hubAddr   string
-	deamons   map[string]models.DeamonClient
-	jobs      map[int64]*models.Job
-	lastJobId int64
-	jobStart  chan models.Job
-	jobStop   chan int64
-	toUi      chan models.BaseModel
+	hubAddr       string
+	deamons       map[string]models.DeamonClient
+	currentChecks models.Checks
+	startChecks   chan models.Checks
+	stopChecks    chan bool
+	toUi          chan models.BaseModel
 }
 
 func NewHub(hubAddr string) *Hub {
 	return &Hub{
 		hubAddr: hubAddr,
 		deamons: make(map[string]models.DeamonClient),
-		jobs: make(map[int64]*models.Job),
-		lastJobId: 0,
-		jobStart: make(chan models.Job),
-		jobStop: make(chan int64),
+		startChecks: make(chan models.Checks),
+		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
 	}
 }
@@ -37,22 +34,13 @@ func (h *Hub) Deamons() []models.Deamon {
 	return r
 }
 
-func (h *Hub) Jobs() []models.Job {
-	r := []models.Job{}
-	for _,j := range h.jobs {
-		r = append(r, *j)
-	}
-	return r
-}
-
 func (h *Hub) Serve() {
-	go handleJobStart(h)
-	go handleJobStop(h)
+	go handleChecksStart(h)
+	go handleChecksStop(h)
 
 	srv := rpc2.NewServer()
 	srv.Handle("register", func(c *rpc2.Client, d *models.Deamon, reply *string) error {
-
-		// Save client for talking to him
+		// Save client for talking to him later
 		deamonJoin(h, d, c)
 
 		*reply = "ok"
@@ -60,6 +48,7 @@ func (h *Hub) Serve() {
 	})
 	srv.Handle("unregister", func(cl *rpc2.Client, host *string, reply *string) error {
 		deamonLeave(h, *host)
+
 		*reply = "ok"
 		return nil
 	})
@@ -71,27 +60,30 @@ func (h *Hub) Serve() {
 	}
 }
 
-func handleJobStart(h *Hub) {
+func handleChecksStart(h *Hub) {
 	for {
-		var job models.Job = <- h.jobStart
+		var checks models.Checks = <-h.startChecks
+		log.Println("Sending to deamons", checks)
 
-		for _,d := range h.deamons {
-			if err := d.Client.Call("startJob", job, nil); err != nil {
-				log.Println("error starting job on deamon", err)
+		for _, d := range h.deamons {
+			if err := d.Client.Call("startChecks", checks, nil); err != nil {
+				log.Println("error starting checks on deamon", err)
 			}
 		}
 	}
 }
 
-func handleJobStop(h *Hub) {
+func handleChecksStop(h *Hub) {
 	for {
-		var jobId int64 = <- h.jobStop
+		var stop bool = <-h.stopChecks
 
-		for _,d := range h.deamons {
-			if err := d.Client.Call("stopJob", jobId, nil); err != nil {
-				log.Println("error stopping job on deamon", err)
+		if (stop) {
+			log.Println("Sending stop command to deamons")
+			for _, d := range h.deamons {
+				if err := d.Client.Call("stopChecks", stop, nil); err != nil {
+					log.Println("error stopping checks on deamon", err)
+				}
 			}
 		}
 	}
-
 }

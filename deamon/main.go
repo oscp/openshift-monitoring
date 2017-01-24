@@ -13,6 +13,10 @@ func main() {
 	hubAddr := os.Getenv("HUB_ADDRESS")
 	deamonType := os.Getenv("DEAMON_TYPE")
 
+	if (len(hubAddr) == 0 || len(deamonType) == 0) {
+		log.Fatal("env variables 'HUB_ADDRESS' and 'DEAMON_TYPE' must be specified")
+	}
+
 	// Register on hub
 	cl := client.RegisterOnHub(hubAddr, deamonType)
 

@@ -7,17 +7,19 @@ import {NotificationsService} from 'angular2-notifications';
   selector: 'app-deamon-overview',
   template: `
         <h4>Connected Deamons</h4>
-        <table class="table table-striped">
-            <thead class="thead-inverse">
+        <table class='table table-striped'>
+            <thead class='thead-inverse'>
                 <tr>
                 <th>Hostname</th>
                 <th>Type</th>
+                <th>Checks running</th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let d of deamons">
+                <tr *ngFor='let d of deamons'>
                     <td>{{d.Hostname}}</td>
                     <td>{{d.DeamonType}}</td>
+                    <td>{{d | json}}</td>
                 </tr>
             </tbody>
         </table>
@@ -35,16 +37,16 @@ export class DeamonsComponent implements OnInit {
       msg => {
         let data = JSON.parse(msg.data);
 
-        switch (data.WsType) {
-          case SocketType.WS_ALL_DEAMONS:
+        switch (data.Type) {
+          case SocketType.ALL_DEAMONS:
             this.deamons = data.Message;
             break;
-          case SocketType.WS_NEW_DEAMON:
-            this.notificationService.info("Deamon joined", "New deamon joined: " + data.Message);
+          case SocketType.NEW_DEAMON:
+            this.notificationService.info('Deamon joined', 'New deamon joined: ' + data.Message);
             this.getDeamons();
             break;
-          case SocketType.WS_DEAMON_LEFT:
-            this.notificationService.info("Deamon left", "Deamon left: " + data.Message);
+          case SocketType.DEAMON_LEFT:
+            this.notificationService.info('Deamon left', 'Deamon left: ' + data.Message);
             this.getDeamons();
         }
       }
@@ -52,6 +54,6 @@ export class DeamonsComponent implements OnInit {
   }
 
   getDeamons() {
-    this.socketService.websocket.next({WsType: SocketType.WS_ALL_DEAMONS});
+    this.socketService.websocket.next({Type: SocketType.ALL_DEAMONS});
   }
 }

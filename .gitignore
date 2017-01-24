@@ -24,6 +24,7 @@ _testmain.go
 *.prof
 
 *.iml
+*.idea/
 /target/
 
 node_modules/

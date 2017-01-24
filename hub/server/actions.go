@@ -11,7 +11,7 @@ func deamonLeave(h *Hub, host string) {
 	log.Println("deamon left: ", host)
 	delete(h.deamons, host)
 
-	h.toUi <- models.BaseModel{WsType: models.WS_DEAMON_LEFT, Message: host}
+	h.toUi <- models.BaseModel{Type: models.DEAMON_LEFT, Message: host}
 }
 
 func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
@@ -19,39 +19,35 @@ func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 
 	h.deamons[d.Hostname] = models.DeamonClient{Client:c, Deamon: *d}
 
-	h.toUi <- models.BaseModel{WsType: models.WS_NEW_DEAMON, Message: d.Hostname}
+	h.toUi <- models.BaseModel{Type: models.NEW_DEAMON, Message: d.Hostname}
 }
 
-func newJob(h *Hub, msg interface{}) models.BaseModel {
-	job := getJobStruct(msg)
+func startChecks(h *Hub, msg interface{}) models.BaseModel {
+	checks := getChecksStruct(msg)
 
-	h.lastJobId++
-	job.JobId = h.lastJobId
-	job.JobStatus = models.JOB_RUNNING
-
-	h.jobs[job.JobId] = &job
-
-	// Start job on deamons
-	h.jobStart <- job
+	// Save current state & tell deamons
+	checks.IsRunning = true
+	h.currentChecks = checks
+	h.startChecks <- checks
 
 	// Return ok to UI
-	return models.BaseModel{WsType: models.WS_NEW_JOB, Message: job.JobId}
+	return models.BaseModel{Type: models.START_CHECKS, Message: "ok"}
 }
 
-func stopJob(h *Hub, msg interface{}) models.BaseModel {
-	job := getJobStruct(msg)
+func stopChecks(h *Hub) models.BaseModel {
+	// Save current state & tell deamons
+	h.currentChecks = models.Checks{IsRunning:false}
+	h.stopChecks <- true
 
-	h.jobs[job.JobId].JobStatus = models.JOB_STOPPED
-	h.jobStop <- job.JobId
-
-	return models.BaseModel{WsType: models.WS_STOP_JOB}
+	// Return ok to UI
+	return models.BaseModel{Type: models.STOP_CHECKS, Message: "ok"}
 }
 
-func getJobStruct(msg interface{}) models.Job {
-	var job models.Job
-	err := mapstructure.Decode(msg, &job)
+func getChecksStruct(msg interface{}) models.Checks {
+	var checks models.Checks
+	err := mapstructure.Decode(msg, &checks)
 	if err != nil {
-		log.Println("error decoding job", err)
+		log.Println("error decoding checks", err)
 	}
-	return job
+	return checks
 }

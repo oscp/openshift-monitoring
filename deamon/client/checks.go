@@ -7,14 +7,13 @@ import (
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
 )
 
-func startJob(job *models.Job) {
-	log.Println("starting new job", job)
-
+func startChecks(checks *models.Checks) {
+	log.Println("starting new checks", checks)
 
 }
 
-func stopJob(jobId *int64) {
-	log.Println("stopping job", jobId)
+func stopChecks() {
+	log.Println("stopping all checks")
 }
 
 func checkHttpConnection(url string) {

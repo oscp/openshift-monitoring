@@ -6,38 +6,39 @@ export class SocketService {
     public websocket: Subject<any>;
 
     constructor() {
-      this.connectToUI();
+        this.connectToUI();
     }
 
     private connectToUI() {
-      let that = this;
-      let socket = new WebSocket('ws://localhost:8080/ui');
-      let observable = Observable.create(
-        (observer: Observer<MessageEvent>) => {
-          socket.onmessage = observer.next.bind(observer);
-          socket.onerror = observer.error.bind(observer);
-          socket.onclose = () => {
-            setTimeout(
-              () => {
-                that.websocket = undefined;
-                that.connectToUI();
-              }
-              , 10000
-            )
-          }
-          return socket.close.bind(socket);
-        }
-      ).share();
+        let that = this;
+        let socket = new WebSocket('ws://localhost:8080/ui');
+        let observable = Observable.create(
+            (observer: Observer<MessageEvent>) => {
+                socket.onmessage = observer.next.bind(observer);
+                socket.onerror = observer.error.bind(observer);
+                socket.onclose = () => {
+                    setTimeout(
+                        () => {
+                            console.log('reconnecting websocket');
+                            that.websocket = undefined;
+                            that.connectToUI();
+                        }
+                        , 10000
+                    );
+                };
+                return socket.close.bind(socket);
+            }
+        ).share();
 
-      let observer = {
-        next: (data: Object) => {
-          that.waitForSocketConnection(socket, () => {
-            socket.send(JSON.stringify(data));
-          });
-        }
-      };
+        let observer = {
+            next: (data: Object) => {
+                that.waitForSocketConnection(socket, () => {
+                    socket.send(JSON.stringify(data));
+                });
+            }
+        };
 
-      this.websocket = Subject.create(observer, observable);
+        this.websocket = Subject.create(observer, observable);
     }
 
     private waitForSocketConnection(socket, callback) {

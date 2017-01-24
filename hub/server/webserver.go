@@ -50,16 +50,16 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 		}
 
 		var res interface{}
-		switch msg.WsType {
-		case models.WS_ALL_DEAMONS:
-			res = models.BaseModel{WsType: models.WS_ALL_DEAMONS, Message: h.Deamons()}
+		switch msg.Type {
+		case models.ALL_DEAMONS:
+			res = models.BaseModel{Type: models.ALL_DEAMONS, Message: h.Deamons()}
 			break
-		case models.WS_ALL_JOBS:
-			res = models.BaseModel{WsType: models.WS_ALL_JOBS, Message: h.Jobs()}
-		case models.WS_NEW_JOB:
-			res = newJob(h, msg.Message)
-		case models.WS_STOP_JOB:
-			res = stopJob(h, msg.Message)
+		case models.START_CHECKS:
+			res = startChecks(h, msg.Message)
+			break
+		case models.STOP_CHECKS:
+			res = stopChecks(h)
+			break
 		}
 
 		err = c.WriteJSON(res)

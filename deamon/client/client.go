@@ -12,13 +12,13 @@ func RegisterOnHub(h string, dt string) *rpc2.Client {
 	// Register on hub
 	conn, _ := net.Dial("tcp", h)
 	c := rpc2.NewClient(conn)
-	c.Handle("startJob", func(client *rpc2.Client, job *models.Job, reply *string) error {
-		startJob(job)
+	c.Handle("startChecks", func(client *rpc2.Client, checks *models.Checks, reply *string) error {
+		startChecks(checks)
 		*reply = "ok"
 		return nil
 	})
-	c.Handle("stopJob", func(client *rpc2.Client, jobId *int64, reply *string) error {
-		stopJob(jobId)
+	c.Handle("stopChecks", func(client *rpc2.Client, stop *bool, reply *string) error {
+		stopChecks()
 		*reply = "ok"
 		return nil
 	})
@@ -28,7 +28,7 @@ func RegisterOnHub(h string, dt string) *rpc2.Client {
 	log.Println("registring on hub:", h)
 	var rep string
 	host, _ := os.Hostname()
-	err := c.Call("register", models.Deamon{Hostname: host, DeamonType: dt}, &rep)
+	err := c.Call("register", models.Deamon{Hostname: host, DeamonType: dt, ChecksCount: 0}, &rep)
 	if err != nil {
 		log.Fatal("error registring on hub: ", err)
 	}
