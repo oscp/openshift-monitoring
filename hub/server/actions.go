@@ -17,9 +17,17 @@ func deamonLeave(h *Hub, host string) {
 func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 	log.Println("new deamon joined:", d)
 
-	h.deamons[d.Hostname] = models.DeamonClient{Client:c, Deamon: *d}
+	h.deamons[d.Hostname] = &models.DeamonClient{Client:c, Deamon: *d}
 
 	h.toUi <- models.BaseModel{Type: models.NEW_DEAMON, Message: d.Hostname}
+}
+
+func updateCheckcount(h *Hub, d *models.Deamon) {
+	log.Println("getting count update", d)
+	h.deamons[d.Hostname].Deamon.ChecksCount = d.ChecksCount
+
+	// Tell the UI about it
+	h.toUi <- models.BaseModel{Type: models.ALL_DEAMONS, Message: h.Deamons()}
 }
 
 func startChecks(h *Hub, msg interface{}) models.BaseModel {

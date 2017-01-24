@@ -15,15 +15,27 @@ import {SocketType} from "../shared/socket.types";
     <div class="row form-group">
         <div class="form-check form-check-inline">
             <label class="form-check-label">
-                <input type="checkbox" name="masterapicheck" id="masterapicheck" [(ngModel)]="checks.MasterApiCheck"> Master-API-Checks
+                <input type="checkbox" name="masterapicheck" id="masterapicheck"
+                       [(ngModel)]="checks.MasterApiCheck"> Master-API-Checks
             </label>
         </div>
     </div>
 
     <div class="form-group row">
-        <div class="col-sm-10">
-            <button class="btn btn-primary" (click)="startChecks()" *ngIf="!checks.IsRunning">Start Checks</button>
-            <button class="btn btn-primary" (click)="stopChecks()" *ngIf="checks.IsRunning">Stop Checks</button>
+        <div class="col-sm-3">
+            <button class="btn btn-primary" (click)="startChecks()" *ngIf="!checks.IsRunning">Start Checks
+            </button>
+            <button class="btn btn-primary" (click)="stopChecks()" *ngIf="checks.IsRunning">Stop Checks
+            </button>
+        </div>
+        <div class="col-sm-2">
+            <div class="spinner" *ngIf="checks.IsRunning">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
         </div>
     </div>
 </form>

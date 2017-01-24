@@ -9,7 +9,7 @@ import (
 
 type Hub struct {
 	hubAddr       string
-	deamons       map[string]models.DeamonClient
+	deamons       map[string]*models.DeamonClient
 	currentChecks models.Checks
 	startChecks   chan models.Checks
 	stopChecks    chan bool
@@ -19,7 +19,7 @@ type Hub struct {
 func NewHub(hubAddr string) *Hub {
 	return &Hub{
 		hubAddr: hubAddr,
-		deamons: make(map[string]models.DeamonClient),
+		deamons: make(map[string]*models.DeamonClient),
 		startChecks: make(chan models.Checks),
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
@@ -52,7 +52,12 @@ func (h *Hub) Serve() {
 		*reply = "ok"
 		return nil
 	})
+	srv.Handle("updateCheckcount", func(cl *rpc2.Client, d *models.Deamon, reply *string) error {
+		updateCheckcount(h, d)
 
+		*reply = "ok"
+		return nil
+	})
 	lis, err := net.Listen("tcp", h.hubAddr)
 	srv.Accept(lis)
 	if err != nil {
