@@ -8,28 +8,49 @@ import {SocketType} from "../shared/socket.types";
     template: `<br/>
 <h4>Results</h4>
 <div class="container-fluid">
-<div class="row">
-    <div class="col-xs-6">
-        <h5>Successful checks</h5>
-        <canvas baseChart
-                [data]="successData"
-                [labels]="successLabels"
-                [chartType]="chartType"></canvas>
+    <div class="row">
+        <div class="col-xs-6">
+            <h5>Successful checks</h5>
+            <canvas baseChart
+                    [data]="successData"
+                    [labels]="successLabels"
+                    [chartType]="chartType"></canvas>
+        </div>
+        <div class="col-xs-6">
+            <h5>Failed checks</h5>
+            <canvas baseChart
+                    [data]="errorData"
+                    [labels]="errorLabels"
+                    [chartType]="chartType"></canvas>
+        </div>
     </div>
-    <div class="col-xs-6">
-        <h5>Failed checks</h5>
-         <canvas baseChart
-                [data]="errorData"
-                [labels]="errorLabels"
-                [chartType]="chartType"></canvas>
+    <div class="row">
+        <h6>Failed Checks</h6>
+        <table class="table table-striped table-condensed">
+            <thead class='thead-inverse'>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let e of errorChecks">
+                <td>{{e.Date}}</td>
+                <td>{{e.Type}}</td>
+                <td>{{e.Message}}</td>
+            </tr>
+            </tbody>
+
+        </table>
     </div>
-</div>
 </div>
     `
 })
 export class ResultsComponent implements OnInit {
     public errorLabels: string[] = [];
     public errorData: number[] = [];
+    public errorChecks: Array<any> = [];
 
     public successLabels: string[] = [];
     public successData: number[] = [];
@@ -79,6 +100,9 @@ export class ResultsComponent implements OnInit {
             this.errorData = this.errorData.slice();
             this.errorLabels = this.errorLabels.slice();
 
+            // Tell the user about it
+            msg.Date = new Date();
+            this.errorChecks.push(msg);
             this.notificationService.error(`check ${msg.Type} failed.`, msg.Message);
         }
     }
