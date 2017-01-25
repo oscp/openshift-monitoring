@@ -1,12 +1,26 @@
 import {Injectable} from '@angular/core';
 import {Observer, Observable, Subject} from 'rxjs/Rx';
+import {NotificationsService} from "angular2-notifications";
 
 @Injectable()
 export class SocketService {
     public websocket: Subject<any>;
 
-    constructor() {
+    constructor(private notificationService: NotificationsService) {
         this.connectToUI();
+    }
+
+    private reconnectWebsocket() {
+        let that = this;
+        this.notificationService.error("Error on websocket", "Error on websocket. Reconnecting...");
+        setTimeout(
+            () => {
+                console.log('reconnecting websocket');
+                that.websocket = undefined;
+                that.connectToUI();
+            }
+            , 1000
+        );
     }
 
     private connectToUI() {
@@ -15,16 +29,11 @@ export class SocketService {
         let observable = Observable.create(
             (observer: Observer<MessageEvent>) => {
                 socket.onmessage = observer.next.bind(observer);
-                socket.onerror = observer.error.bind(observer);
+                socket.onerror = () => {
+                    that.reconnectWebsocket();
+                }
                 socket.onclose = () => {
-                    setTimeout(
-                        () => {
-                            console.log('reconnecting websocket');
-                            that.websocket = undefined;
-                            that.connectToUI();
-                        }
-                        , 4000
-                    );
+                    that.reconnectWebsocket();
                 };
                 return socket.close.bind(socket);
             }

@@ -10,7 +10,7 @@ import {SocketType} from "../shared/socket.types";
         <label for="masterapi" class="col-sm-2 col-form-label">Master-API-URLs</label>
         <div class="col-sm-10">
             <input type="text" class="form-control" name="masterapiurl" id="masterapiurl" 
-                    [(ngModel)]="checks.MasterApiUrl">
+                    [(ngModel)]="checks.MasterApiUrls">
         </div>
     </div>
     <div class="row form-group">

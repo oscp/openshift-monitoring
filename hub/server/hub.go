@@ -16,13 +16,14 @@ type Hub struct {
 	toUi          chan models.BaseModel
 }
 
-func NewHub(hubAddr string) *Hub {
+func NewHub(hubAddr string, masterApiUrls string) *Hub {
 	return &Hub{
 		hubAddr: hubAddr,
 		deamons: make(map[string]*models.DeamonClient),
 		startChecks: make(chan models.Checks),
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
+		currentChecks: models.Checks{MasterApiUrls: masterApiUrls, MasterApiCheck: true},
 	}
 }
 
@@ -55,6 +56,11 @@ func (h *Hub) Serve() {
 	srv.Handle("updateCheckcount", func(cl *rpc2.Client, d *models.Deamon, reply *string) error {
 		updateCheckcount(h, d)
 
+		*reply = "ok"
+		return nil
+	})
+	srv.Handle("checkResult", func(cl *rpc2.Client, r *models.CheckResult, reply *string) error {
+		h.toUi <- models.BaseModel{Type: models.CHECK_RESULT, Message: r}
 		*reply = "ok"
 		return nil
 	})

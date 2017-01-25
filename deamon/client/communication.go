@@ -32,7 +32,6 @@ func unregisterOnHub(c *rpc2.Client) {
 func handleCheckResultToHub(dc *models.DeamonClient) {
 	for {
 		var r models.CheckResult = <- dc.ToHub
-		log.Println("telling hub about it", r)
 
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {
 			log.Println("error sending CheckResult to hub", err)

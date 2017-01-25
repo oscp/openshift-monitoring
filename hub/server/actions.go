@@ -19,6 +19,13 @@ func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 
 	h.deamons[d.Hostname] = &models.DeamonClient{Client:c, Deamon: *d}
 
+	if (h.currentChecks.IsRunning) {
+		// Tell the new deamon to join the checks
+		if err := c.Call("startChecks", h.currentChecks, nil); err != nil {
+			log.Println("error starting checks on newly joined deamon", err)
+		}
+	}
+
 	h.toUi <- models.BaseModel{Type: models.NEW_DEAMON, Message: d.Hostname}
 }
 

@@ -11,20 +11,19 @@ import (
 func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 	tick := time.Tick(1 * time.Second)
 
+	log.Println("starting checks")
+
 	go func() {
 		for {
 			select {
 			case <-dc.Quit:
-				log.Println("stopped all checks")
+				log.Println("stopped checks")
 				updateChecksCount(dc, true)
 				return
 			case <-tick:
 				if (checks.MasterApiCheck) {
-					updateChecksCount(dc, false)
-					go checkMasterApis(dc, checks.MasterApiUrl)
+					go checkMasterApis(dc, checks.MasterApiUrls)
 				}
-			default:
-				time.Sleep(50 * time.Millisecond)
 			}
 		}
 	}()
@@ -38,13 +37,18 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
  	urlArr := strings.Split(urls, ",")
 
 	oneApiOk := false
+	var msg string
 	for _,u := range urlArr {
 		_, err := http.Get(u)
 		if (err == nil) {
 			oneApiOk = true
+		} else {
+			msg += u + " is not reachable. ";
 		}
 	}
 
+	updateChecksCount(dc, false)
+
 	// Tell the hub about it
-	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: ""}
+	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: msg}
 }

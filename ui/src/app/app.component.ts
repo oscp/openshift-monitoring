@@ -8,6 +8,7 @@ import {Component} from '@angular/core';
     <simple-notifications [options]='notificationOptions'></simple-notifications>
     <app-deamon-overview></app-deamon-overview>
     <app-checks></app-checks>
+    <app-results></app-results>
 </div>
     `
 })

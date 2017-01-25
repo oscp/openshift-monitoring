@@ -7,16 +7,18 @@ import (
 	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/hub/server"
 )
 
-var uiAddr = flag.String("uiAddr", "localhost:8080", "http service endpoint")
-var hubAddr = flag.String("hubAddr", "localhost:2600", "go hub rcp2 address")
+var uiAddr = flag.String("UI_ADDR", "localhost:8080", "http service endpoint")
+var hubAddr = flag.String("RPC_ADDR", "localhost:2600", "go hub rcp2 address")
+var masterApiUrls = flag.String("MASTER_API_URLS", "http://www.google.ch,http://www.heise.de", "addresses of master api's")
 
 func main() {
 	flag.Parse()
 	log.Println("hub waiting for deamons on ", *hubAddr)
 	log.Println("ui server waiting for websocket on ", *uiAddr)
+	log.Println("master api urls are ", *masterApiUrls)
 
 	// Start hub rcp server
-	hub := server.NewHub(*hubAddr)
+	hub := server.NewHub(*hubAddr, *masterApiUrls)
 	go hub.Serve()
 
 	// Start websocket server for ui
