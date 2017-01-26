@@ -18,7 +18,6 @@ func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 			select {
 			case <-dc.Quit:
 				log.Println("stopped checks")
-				updateChecksCount(dc, true)
 				return
 			case <-tick:
 				if (checks.MasterApiCheck) {
@@ -34,6 +33,7 @@ func stopChecks(dc *models.DeamonClient) {
 }
 
 func checkMasterApis(dc *models.DeamonClient, urls string) {
+	handleCheckStarted(dc)
  	urlArr := strings.Split(urls, ",")
 
 	oneApiOk := false
@@ -47,7 +47,7 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 		}
 	}
 
-	updateChecksCount(dc, false)
+	handleCheckFinished(dc)
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: msg}

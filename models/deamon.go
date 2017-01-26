@@ -3,9 +3,10 @@ package models
 import "github.com/cenkalti/rpc2"
 
 type Deamon struct {
-	Hostname    string
-	DeamonType  string
-	ChecksCount int
+	Hostname       string
+	DeamonType     string
+	StartedChecks  int
+	FinishedChecks int
 }
 
 type DeamonClient struct {

@@ -30,7 +30,8 @@ func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
 }
 
 func updateCheckcount(h *Hub, d *models.Deamon) {
-	h.deamons[d.Hostname].Deamon.ChecksCount = d.ChecksCount
+	h.deamons[d.Hostname].Deamon.FinishedChecks = d.FinishedChecks
+	h.deamons[d.Hostname].Deamon.StartedChecks = d.StartedChecks
 
 	// Tell the UI about it
 	h.toUi <- models.BaseModel{Type: models.ALL_DEAMONS, Message: h.Deamons()}

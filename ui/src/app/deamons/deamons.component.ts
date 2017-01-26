@@ -12,14 +12,14 @@ import {NotificationsService} from 'angular2-notifications';
                 <tr>
                 <th>Hostname</th>
                 <th>Type</th>
-                <th>Checks ran</th>
+                <th>Checks started/finished</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor='let d of deamons'>
                     <td>{{d.Hostname}}</td>
                     <td>{{d.DeamonType}}</td>
-                    <td>{{d.ChecksCount}}</td>
+                    <td>{{d.StartedChecks}} / {{d.FinishedChecks}}</td>
                 </tr>
             </tbody>
         </table>

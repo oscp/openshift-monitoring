@@ -29,6 +29,24 @@ func unregisterOnHub(c *rpc2.Client) {
 	c.Close()
 }
 
+func handleCheckStarted(dc *models.DeamonClient) {
+	dc.Deamon.StartedChecks++
+	updateDeamonOnHub(dc)
+}
+
+func handleCheckFinished(dc *models.DeamonClient) {
+	dc.Deamon.FinishedChecks++
+	updateDeamonOnHub(dc)
+}
+
+func updateDeamonOnHub(dc *models.DeamonClient) {
+	var rep string
+	err := dc.Client.Call("updateCheckcount", dc.Deamon, &rep)
+	if err != nil {
+		log.Println("error updating Checkcounts on hub: ", err)
+	}
+}
+
 func handleCheckResultToHub(dc *models.DeamonClient) {
 	for {
 		var r models.CheckResult = <- dc.ToHub
@@ -36,20 +54,6 @@ func handleCheckResultToHub(dc *models.DeamonClient) {
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {
 			log.Println("error sending CheckResult to hub", err)
 		}
-	}
-}
-
-func updateChecksCount(dc *models.DeamonClient, reset bool) {
-	if (reset) {
-		dc.Deamon.ChecksCount = 0
-	} else {
-		dc.Deamon.ChecksCount++
-	}
-
-	var rep string
-	err := dc.Client.Call("updateCheckcount", dc.Deamon, &rep)
-	if err != nil {
-		log.Println("error updating ChecksCount on hub: ", err)
 	}
 }
 
