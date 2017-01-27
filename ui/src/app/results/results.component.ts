@@ -16,14 +16,16 @@ export class ResultsComponent implements OnInit {
 
     public successLabels: string[] = [];
     public successData: number[] = [];
-    public successDataBackground: string[] = [];
+    public dognutBgColors: any[] = [{
+        backgroundColor: '#36A2EB'
+    }]
     public chartType: string = 'doughnut';
 
     public checkOverviewLabels: string[] = ['Started', 'Finished'];
     public checkOverviewData: number[] = [0, 0];
 
     // Line Chart
-    @ViewChild('lineChart') chart: BaseChartDirective;
+    @ViewChild('linechart') chart: BaseChartDirective;
     public lineChartType: string = 'line';
     public checkLineData: any = [
         {data: [], label: 'Successful checks'},
@@ -138,12 +140,14 @@ export class ResultsComponent implements OnInit {
         } else {
             this.successLabels.push(msg.Type);
             this.successData.push(1);
-            this.successDataBackground.push(idx % 2 === 0 ? '#36A2EB' : '#FF6384')
+            this.dognutBgColors.push({
+                backgroundColor: idx % 2 === 0 ? '#36A2EB' : '#FF6384'
+            });
         }
 
         // Enforce refresh
         this.successData = this.successData.slice();
         this.successLabels = this.successLabels.slice();
-        this.successDataBackground = this.successDataBackground.slice();
+        this.dognutBgColors = this.dognutBgColors.slice();
     }
 }
