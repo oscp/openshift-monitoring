@@ -29,4 +29,20 @@ So we try hard to test new versions & config in our test environment. As our tes
 - Deamon: Deploy on master/node/various pods
 
 # Installation
-Coming soon...
+
+### OpenShift
+```bash
+oc new-project ose-mon-a
+oc new-project ose-mon-b
+oc new-project ose-mon-c
+
+# Join projects a <> c
+oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
+
+# Install deamonset
+
+
+```
+
+### Master nodes
+TODO: Install hub / ui

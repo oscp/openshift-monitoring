@@ -23,7 +23,9 @@ func NewHub(hubAddr string, masterApiUrls string) *Hub {
 		startChecks: make(chan models.Checks),
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
-		currentChecks: models.Checks{MasterApiUrls: masterApiUrls, MasterApiCheck: true},
+		currentChecks: models.Checks{
+			MasterApiUrls: masterApiUrls, MasterApiCheck: true,
+			CheckInterval: 1, DnsCheck:true, IsRunning:false },
 	}
 }
 

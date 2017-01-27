@@ -9,7 +9,7 @@ import (
 
 var uiAddr = flag.String("UI_ADDR", "localhost:8080", "http service endpoint")
 var hubAddr = flag.String("RPC_ADDR", "localhost:2600", "go hub rcp2 address")
-var masterApiUrls = flag.String("MASTER_API_URLS", "http://www.google.ch,http://www.heise.de", "addresses of master api's")
+var masterApiUrls = flag.String("MASTER_API_URLS", "https://master1:8443,https://master2:8443", "addresses of master api's")
 
 func main() {
 	flag.Parse()

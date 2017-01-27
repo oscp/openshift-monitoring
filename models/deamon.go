@@ -10,6 +10,18 @@ type Deamon struct {
 	FailedChecks     int
 }
 
+func (d *Deamon) IsMaster() bool {
+	return d.DeamonType == "MASTER"
+}
+
+func (d *Deamon) IsNode() bool {
+	return d.DeamonType == "NODE"
+}
+
+func (d *Deamon) IsPod() bool {
+	return d.DeamonType == "POD"
+}
+
 type DeamonClient struct {
 	Deamon Deamon
 	Client *rpc2.Client

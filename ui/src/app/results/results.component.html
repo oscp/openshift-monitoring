@@ -45,7 +45,7 @@
                 </thead>
                 <tbody>
                 <tr *ngFor="let e of errorChecks">
-                    <td>{{e.Date}}</td>
+                    <td>{{e.Date  | date: 'dd.MM.yyyy HH:mm:ss'}}</td>
                     <td>{{e.Type}}</td>
                     <td>{{e.Message}}</td>
                 </tr>
