@@ -170,9 +170,15 @@ func checkHttp(toCall string) bool {
 		}
 		client := &http.Client{Transport: tr}
 		_, err := client.Get(toCall)
+		if (err != nil) {
+			log.Println("error in http check: ", err)
+		}
 		return err == nil
 	} else {
 		_, err := http.Get(toCall)
+		if (err != nil) {
+			log.Println("error in http check: ", err)
+		}
 		return err == nil
 	}
 }
