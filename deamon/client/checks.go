@@ -47,7 +47,7 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 		}
 	}
 
-	handleCheckFinished(dc)
+	handleCheckFinished(dc, oneApiOk)
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: msg}

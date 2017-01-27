@@ -34,8 +34,12 @@ func handleCheckStarted(dc *models.DeamonClient) {
 	updateDeamonOnHub(dc)
 }
 
-func handleCheckFinished(dc *models.DeamonClient) {
-	dc.Deamon.FinishedChecks++
+func handleCheckFinished(dc *models.DeamonClient, ok bool) {
+	if (ok) {
+		dc.Deamon.SuccessfulChecks++
+	} else {
+		dc.Deamon.FailedChecks++
+	}
 	updateDeamonOnHub(dc)
 }
 

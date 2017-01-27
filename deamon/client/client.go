@@ -10,7 +10,7 @@ import (
 func StartDeamon(h string, dt string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
-	d := models.Deamon{Hostname: host, DeamonType: dt, StartedChecks: 0, FinishedChecks:0}
+	d := models.Deamon{Hostname: host, DeamonType: dt, StartedChecks: 0, FailedChecks:0, SuccessfulChecks:0}
 	dc := &models.DeamonClient{Deamon: d, Quit: make(chan bool), ToHub: make(chan models.CheckResult)}
 
 	// Register on hub

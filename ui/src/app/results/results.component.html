@@ -1,0 +1,56 @@
+<br>
+<h4>Results</h4>
+<br/>
+<div class="container-fluid">
+    <h5>Successful checks</h5>
+    <div class="row">
+        <div class="col-xs-4">
+            <canvas baseChart
+                    [data]="successData"
+                    [labels]="successLabels"
+                    [chartType]="chartType"></canvas>
+        </div>
+        <div class="col-xs-6">
+            <canvas baseChart height="400" width="900"
+                    [datasets]="checkLineData"
+                    [labels]="checkLineLabels"
+                    [legend]="checkLineLegend"
+                    [options]="checkLineOptions"
+                    [chartType]="lineChartType"></canvas>
+        </div>
+        <div class="col-xs-2">
+            <canvas baseChart #lineChart
+                    [data]="checkOverviewData"
+                    [labels]="checkOverviewLabels"
+                    [chartType]="chartType"></canvas>
+        </div>
+    </div>
+    <br/><br/>
+    <h5>Failed Checks</h5>
+    <div class="row">
+        <div class="col-xs-4">
+            <canvas baseChart
+                    [data]="errorData"
+                    [labels]="errorLabels"
+                    [chartType]="chartType"></canvas>
+        </div>
+        <div class="col-xs-8">
+            <table class="table table-striped table-condensed">
+                <thead class='thead-inverse'>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let e of errorChecks">
+                    <td>{{e.Date}}</td>
+                    <td>{{e.Type}}</td>
+                    <td>{{e.Message}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
