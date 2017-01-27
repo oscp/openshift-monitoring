@@ -24,7 +24,7 @@ func NewHub(hubAddr string, masterApiUrls string, deamonPublicUrl string) *Hub {
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
 		currentChecks: models.Checks{
-			CheckInterval: 5,
+			CheckInterval: 5000,
 			MasterApiUrls: masterApiUrls,
 			DeamonPublicUrl: deamonPublicUrl,
 			MasterApiCheck: true,

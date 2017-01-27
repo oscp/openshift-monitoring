@@ -54,6 +54,7 @@ func updateDeamonOnHub(dc *models.DeamonClient) {
 func handleCheckResultToHub(dc *models.DeamonClient) {
 	for {
 		var r models.CheckResult = <- dc.ToHub
+		r.Hostname = dc.Deamon.Hostname
 
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {
 			log.Println("error sending CheckResult to hub", err)

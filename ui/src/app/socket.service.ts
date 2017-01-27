@@ -25,7 +25,7 @@ export class SocketService {
 
     private connectToUI() {
         let that = this;
-        let socket = new WebSocket('ws://localhost:8080/ui');
+        let socket = new WebSocket('ws://devmaster01.ose.sbb-aws.net:80/ui');
         let observable = Observable.create(
             (observer: Observer<MessageEvent>) => {
                 socket.onmessage = observer.next.bind(observer);

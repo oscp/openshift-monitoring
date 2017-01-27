@@ -16,6 +16,7 @@ export class ResultsComponent implements OnInit {
 
     public successLabels: string[] = [];
     public successData: number[] = [];
+    public successDataBackground: string[] = [];
     public chartType: string = 'doughnut';
 
     public checkOverviewLabels: string[] = ['Started', 'Finished'];
@@ -58,6 +59,9 @@ export class ResultsComponent implements OnInit {
     }
 
     private handleDeamonUpdate(deamons) {
+        this.checkOverviewData[0] = 0;
+        this.checkOverviewData[1] = 0;
+
         deamons.forEach(d => {
             this.checkOverviewData[0] += d.StartedChecks;
             this.checkOverviewData[1] += d.FailedChecks + d.SuccessfulChecks;
@@ -134,10 +138,12 @@ export class ResultsComponent implements OnInit {
         } else {
             this.successLabels.push(msg.Type);
             this.successData.push(1);
+            this.successDataBackground.push(idx % 2 === 0 ? '#36A2EB' : '#FF6384')
         }
 
         // Enforce refresh
         this.successData = this.successData.slice();
         this.successLabels = this.successLabels.slice();
+        this.successDataBackground = this.successDataBackground.slice();
     }
 }

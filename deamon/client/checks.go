@@ -22,7 +22,7 @@ const (
 )
 
 func startChecks(dc *models.DeamonClient, checks *models.Checks) {
-	tickExt := time.Tick(time.Duration(checks.CheckInterval) * time.Second)
+	tickExt := time.Tick(time.Duration(checks.CheckInterval) * time.Millisecond)
 	tickInt := time.Tick(5 * time.Second)
 
 	log.Println("starting checks")

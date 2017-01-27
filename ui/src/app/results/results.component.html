@@ -5,13 +5,14 @@
     <h5>Successful checks</h5>
     <div class="row">
         <div class="col-xs-4">
-            <canvas baseChart
+            <canvas baseChart #successChart
                     [data]="successData"
                     [labels]="successLabels"
+                    [colors]="successDataBackground"
                     [chartType]="chartType"></canvas>
         </div>
         <div class="col-xs-6">
-            <canvas baseChart height="400" width="900"
+            <canvas baseChart height="400" width="900" #lineChart
                     [datasets]="checkLineData"
                     [labels]="checkLineLabels"
                     [legend]="checkLineLegend"
@@ -19,7 +20,7 @@
                     [chartType]="lineChartType"></canvas>
         </div>
         <div class="col-xs-2">
-            <canvas baseChart #lineChart
+            <canvas baseChart
                     [data]="checkOverviewData"
                     [labels]="checkOverviewLabels"
                     [chartType]="chartType"></canvas>
@@ -39,6 +40,7 @@
                 <thead class='thead-inverse'>
                 <tr>
                     <th>Date</th>
+                    <th>Host</th>
                     <th>Type</th>
                     <th>Message</th>
                 </tr>
@@ -46,6 +48,7 @@
                 <tbody>
                 <tr *ngFor="let e of errorChecks">
                     <td>{{e.Date  | date: 'dd.MM.yyyy HH:mm:ss'}}</td>
+                    <td>{{e.Hostname}}</td>
                     <td>{{e.Type}}</td>
                     <td>{{e.Message}}</td>
                 </tr>
