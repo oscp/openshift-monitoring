@@ -1,0 +1,37 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  creationTimestamp: null
+  generation: 4
+  labels:
+    app: deamon
+  name: deamon
+spec:
+  selector:
+    matchLabels:
+      app: deamon
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deamon
+    spec:
+      containers:
+      - env:
+        - name: DEAMON_TYPE
+          value: POD
+        - name: HUB_ADDRESS
+          value: yourmaster:2600
+        - name: POD_NAMESPACE
+          value: ose-mon-a
+        image: theimage:tag
+        imagePullPolicy: Always
+        name: deamon
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        purpose: workingnode
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

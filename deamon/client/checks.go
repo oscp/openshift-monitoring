@@ -79,12 +79,12 @@ func checkDnsNslookupOnKubernetes(dc *models.DeamonClient) {
 	if err != nil {
 		isOk = false
 		log.Println("error with nslookup: ", err)
-		msg = "DNS resolution via nslookup & kubernetes failed. "
+		msg = "DNS resolution via nslookup & kubernetes failed."
 	}
 
 	stdOut := out.String()
 
-	if (strings.Contains(stdOut, "Server") && strings.Count(stdOut, "Address") == 2 && strings.Contains(stdOut, "Name")) {
+	if (strings.Contains(stdOut, "Server") && strings.Count(stdOut, "Address") >= 2 && strings.Contains(stdOut, "Name")) {
 		isOk = true
 	} else {
 		msg += "NsLookup had wrong output"
