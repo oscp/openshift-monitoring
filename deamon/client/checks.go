@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"bytes"
 	"net"
+	"crypto/tls"
 )
 
 const (
@@ -147,8 +148,7 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 	oneApiOk := false
 	var msg string
 	for _, u := range urlArr {
-		_, err := http.Get(u)
-		if (err == nil) {
+		if (checkHttp(u)) {
 			oneApiOk = true
 		} else {
 			msg += u + " is not reachable. ";
@@ -162,7 +162,11 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 }
 
 func checkHttp(toCall string) bool {
-	_, err := http.Get(toCall)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	_, err := client.Get(toCall)
 	return err == nil
 }
 
