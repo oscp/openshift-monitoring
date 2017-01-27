@@ -124,6 +124,8 @@ func checkDnsInPod(dc *models.DeamonClient) {
 	if (ips == nil) {
 		isOk = false
 		msg = "Failed to lookup ip in pod for name " + deamonDNSPod
+	} else {
+		isOk = true
 	}
 
 	handleCheckFinished(dc, isOk)
