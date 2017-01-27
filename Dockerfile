@@ -1,6 +1,6 @@
 FROM golang:1.7.4-wheezy
 
-WORKDIR /go/src/
+WORKDIR /go/src/github.com/SchweizerischeBundesbahnen/openshift-monitoring/deamon/
 
 COPY ./deamon /go/src/github.com/SchweizerischeBundesbahnen/openshift-monitoring/deamon/
 
