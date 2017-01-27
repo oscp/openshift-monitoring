@@ -164,12 +164,17 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 }
 
 func checkHttp(toCall string) bool {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	if (strings.HasPrefix(toCall, "https")) {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		_, err := client.Get(toCall)
+		return err == nil
+	} else {
+		_, err := http.Get(toCall)
+		return err == nil
 	}
-	client := &http.Client{Transport: tr}
-	_, err := client.Get(toCall)
-	return err == nil
 }
 
 func checkPodHttpAtoB(dc *models.DeamonClient) {
