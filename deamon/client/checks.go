@@ -177,7 +177,7 @@ func checkPodHttpAtoB(dc *models.DeamonClient) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := !checkHttp(deamonDNSServiceB + ":8090")
+	isOk := !checkHttp(deamonDNSServiceB + ":8090/hello")
 
 	handleCheckFinished(dc, isOk)
 
@@ -190,7 +190,7 @@ func checkPodHttpAtoC(dc *models.DeamonClient) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp(deamonDNSServiceC + ":8090")
+	isOk := checkHttp(deamonDNSServiceC + ":8090/hello")
 
 	handleCheckFinished(dc, isOk)
 
@@ -202,7 +202,7 @@ func checkHttpHaProxy(dc *models.DeamonClient, publicUrl string) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp(publicUrl + ":80")
+	isOk := checkHttp(publicUrl + ":80/hello")
 
 	handleCheckFinished(dc, isOk)
 
