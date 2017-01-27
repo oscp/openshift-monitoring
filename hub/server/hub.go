@@ -16,7 +16,7 @@ type Hub struct {
 	toUi          chan models.BaseModel
 }
 
-func NewHub(hubAddr string, masterApiUrls string) *Hub {
+func NewHub(hubAddr string, masterApiUrls string, deamonPublicUrl string) *Hub {
 	return &Hub{
 		hubAddr: hubAddr,
 		deamons: make(map[string]*models.DeamonClient),
@@ -24,8 +24,13 @@ func NewHub(hubAddr string, masterApiUrls string) *Hub {
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
 		currentChecks: models.Checks{
-			MasterApiUrls: masterApiUrls, MasterApiCheck: true,
-			CheckInterval: 1, DnsCheck:true, IsRunning:false },
+			CheckInterval: 1,
+			MasterApiUrls: masterApiUrls,
+			DeamonPublicUrl: deamonPublicUrl,
+			MasterApiCheck: true,
+			HttpChecks: true,
+			DnsCheck:true,
+			IsRunning:false },
 	}
 }
 

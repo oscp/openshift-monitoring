@@ -4,6 +4,7 @@ import "github.com/cenkalti/rpc2"
 
 type Deamon struct {
 	Hostname         string
+	Namespace        string
 	DeamonType       string
 	StartedChecks    int
 	SuccessfulChecks int

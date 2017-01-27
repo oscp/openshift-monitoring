@@ -1,0 +1,59 @@
+<h4>Checks</h4>
+<form #form="ngForm">
+    <div class="form-group row">
+        <label for="masterapiurl" class="col-sm-2 col-form-label">Master-API-URLs</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="masterapiurl" id="masterapiurl"
+                   [(ngModel)]="checks.MasterApiUrls">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="deamonurl" class="col-sm-2 col-form-label">Deamon public url</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="deamonurl" id="deamonurl"
+                   [(ngModel)]="checks.DeamonPublicUrl">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="interval" class="col-sm-2 col-form-label">Check interval</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="interval" id="interval"
+                   [(ngModel)]="checks.CheckInterval">
+        </div>
+    </div>
+
+    <div class="row form-group">
+        <div class="form-check form-check-inline">
+            <label class="form-check-label">
+                <input type="checkbox" name="masterapicheck" id="masterapicheck"
+                       [(ngModel)]="checks.MasterApiCheck"> Master-API-Checks
+            </label>
+            <label class="form-check-label">
+                <input type="checkbox" name="dnscheck" id="dnscheck"
+                       [(ngModel)]="checks.DnsCheck"> DNS-Checks
+            </label>
+            <label class="form-check-label">
+                <input type="checkbox" name="httpcheck" id="httpcheck"
+                       [(ngModel)]="checks.HttpChecks"> Http-Checks
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-3">
+            <button class="btn btn-primary" (click)="startChecks()" *ngIf="!checks.IsRunning">Start Checks
+            </button>
+            <button class="btn btn-primary" (click)="stopChecks()" *ngIf="checks.IsRunning">Stop Checks
+            </button>
+        </div>
+        <div class="col-sm-2">
+            <div class="spinner" *ngIf="checks.IsRunning">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+        </div>
+    </div>
+</form>

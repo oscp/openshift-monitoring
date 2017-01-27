@@ -7,11 +7,19 @@ import (
 	"os"
 )
 
-func StartDeamon(h string, dt string) *rpc2.Client {
+func StartDeamon(h string, dt string, ns string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
-	d := models.Deamon{Hostname: host, DeamonType: dt, StartedChecks: 0, FailedChecks:0, SuccessfulChecks:0}
-	dc := &models.DeamonClient{Deamon: d, Quit: make(chan bool), ToHub: make(chan models.CheckResult)}
+	d := models.Deamon{Hostname: host,
+		Namespace: ns,
+		DeamonType: dt,
+		StartedChecks: 0,
+		FailedChecks:0,
+		SuccessfulChecks:0}
+
+	dc := &models.DeamonClient{Deamon: d,
+		Quit: make(chan bool),
+		ToHub: make(chan models.CheckResult)}
 
 	// Register on hub
 	conn, _ := net.Dial("tcp", h)

@@ -13,7 +13,9 @@ import (
 
 const (
 	deamonDNSEndpoint = "deamon.ose-mon-a.endpoints.cluster.local"
-	deamonDNSService = "deamon.ose-mon-a.svc.cluster.local"
+	deamonDNSServiceA = "deamon.ose-mon-a.svc.cluster.local"
+	deamonDNSServiceB = "deamon.ose-mon-b.svc.cluster.local"
+	deamonDNSServiceC = "deamon.ose-mon-c.svc.cluster.local"
 	deamonDNSPod = "deamon"
 	kubernetesIP = "172.30.0.1"
 )
@@ -38,13 +40,22 @@ func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 				if (checks.DnsCheck) {
 					go checkDnsNslookupOnKubernetes(dc)
 
-					if (dc.Deamon.IsNode()){
+					if (dc.Deamon.IsNode()) {
 						go checkDnsServiceNode(dc)
 					}
 
 					if (dc.Deamon.IsPod()) {
 						go checkDnsInPod(dc)
 					}
+				}
+
+				if (checks.HttpChecks) {
+					if (dc.Deamon.IsNode() || (dc.Deamon.IsPod() && strings.HasSuffix(dc.Deamon.Namespace, "a"))) {
+						go checkPodHttpAtoB(dc)
+						go checkPodHttpAtoC(dc)
+					}
+
+					go checkHttpHaProxy(dc, checks.DeamonPublicUrl)
 				}
 			}
 		}
@@ -89,11 +100,11 @@ func checkDnsServiceNode(dc *models.DeamonClient) {
 	isOk := false
 	var msg string
 
-	ips := getIpsForName(deamonDNSService)
+	ips := getIpsForName(deamonDNSServiceA)
 
 	if (ips == nil) {
 		isOk = false
-		msg = "Failed to lookup ip on node (dnsmasq) for name " + deamonDNSService
+		msg = "Failed to lookup ip on node (dnsmasq) for name " + deamonDNSServiceA
 	}
 
 	handleCheckFinished(dc, isOk)
@@ -148,4 +159,47 @@ func checkMasterApis(dc *models.DeamonClient, urls string) {
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.MASTER_API_CHECK, IsOk: oneApiOk, Message: msg}
+}
+
+func checkHttp(toCall string) bool {
+	_, err := http.Get(toCall)
+	return err == nil
+}
+
+func checkPodHttpAtoB(dc *models.DeamonClient) {
+	// This should fail as we do not have access to this project
+	handleCheckStarted(dc)
+	var msg string
+
+	isOk := !checkHttp(deamonDNSServiceB + ":8090")
+
+	handleCheckFinished(dc, isOk)
+
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_B, IsOk: isOk, Message: msg}
+}
+
+func checkPodHttpAtoC(dc *models.DeamonClient) {
+	// This should work as we joined this projects
+	handleCheckStarted(dc)
+	var msg string
+
+	isOk := checkHttp(deamonDNSServiceC + ":8090")
+
+	handleCheckFinished(dc, isOk)
+
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_C, IsOk: isOk, Message: msg}
+}
+
+func checkHttpHaProxy(dc *models.DeamonClient, publicUrl string) {
+	handleCheckStarted(dc)
+	var msg string
+
+	isOk := checkHttp(publicUrl + ":80")
+
+	handleCheckFinished(dc, isOk)
+
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.HTTP_HAPROXY, IsOk: isOk, Message: msg}
 }
