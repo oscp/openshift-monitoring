@@ -10,4 +10,4 @@ RUN go get github.com/mitchellh/mapstructure
 
 RUN go install -v
 
-CMD ["app"]
+CMD ["deamon"]
