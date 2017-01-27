@@ -11,6 +11,6 @@ RUN go get github.com/mitchellh/mapstructure
 RUN go install -v
 
 # Install necessary tools
-RUN apt-get install -y --no-install-recommends dnsutils
+RUN apt-get update && apt-get install -y --no-install-recommends dnsutils
 
 CMD ["deamon"]
