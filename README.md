@@ -5,28 +5,27 @@ So we try hard to test new versions & config in our test environment. As our tes
 # Check overview
 
 ### Master services
-- Check if the master api is available on all times
+- Check if the master api is available at all times
 - Check skydns on the master itself
-- Check acces to a running app through sdn
+- Check access to a running app through sdn
+- Check etcd health
 
 ### Worker nodes
 - Check skydns on the master
 - Check dnsmasq on the node
-- Check acces to a running app through sdn
-- Check acces to a running app via outside <> haproxy
+- Check access to a running app through sdn
+- Check access to a running app via haproxy
 
 ### Pods
 - Check dns
 - Check access to another running app in same project
 - Check access to another running app in joined project
-- Check acces to a running app via outside <> haproxy
-- Check access to something outside openshift
-- Check access to something on the internet
+- Check access to a running app via haproxy
 
 # Components
-- UI
-- UI Backend: WS-Gateway
-- Daemon: Deploy on master/node/various pods
+- UI: The UI to controll everything
+- Hub: The backend of the UI and the daemons
+- Daemon: Deploy them as DaemonSet & manually on master & nodes
 
 # Installation
 
@@ -39,10 +38,10 @@ oc new-project ose-mon-c
 # Join projects a <> c
 oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
 
-# Install daemonset
-
+# Install the template
+TODO....
 
 ```
 
 ### Master nodes
-TODO: Install hub / ui
+TODO.....

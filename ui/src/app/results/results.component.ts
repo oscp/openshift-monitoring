@@ -17,10 +17,10 @@ export class ResultsComponent implements OnInit {
         }
     };
     public checkTypeLabels: string[] = ["MASTER_API_CHECK", "DNS_NSLOOKUP_KUBERNETES", "DNS_SERVICE_NODE",
-        "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_HAPROXY", "ETCD_HEALTH"];
+        "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_SERVICE_ABC", "HTTP_HAPROXY", "ETCD_HEALTH"];
 
-    public errorData: number[] = [0,0,0,0,0,0,0,0];
-    public successData: number[] = [0,0,0,0,0,0,0,0];
+    public errorData: number[] = [0,0,0,0,0,0,0,0,0];
+    public successData: number[] = [0,0,0,0,0,0,0,0,0];
     public errors: Array<any> = [];
 
     public checkOverviewLabels: string[] = ['Started', 'Finished'];

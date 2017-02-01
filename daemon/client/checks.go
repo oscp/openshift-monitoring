@@ -44,7 +44,7 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 				if (checks.DnsCheck) {
 					go checkDnsNslookupOnKubernetes(dc)
 
-					if (dc.Daemon.IsNode()) {
+					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
 						go checkDnsServiceNode(dc)
 					}
 
@@ -54,11 +54,12 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 				}
 
 				if (checks.HttpChecks) {
-					if (dc.Daemon.IsNode() || (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a"))) {
+					if (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a")) {
 						go checkPodHttpAtoB(dc)
 						go checkPodHttpAtoC(dc)
 					}
 
+					go checkHttpService(dc)
 					go checkHttpHaProxy(dc, checks.DaemonPublicUrl)
 				}
 			}
@@ -210,6 +211,20 @@ func checkPodHttpAtoC(dc *models.DaemonClient) {
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_C, IsOk: isOk, Message: msg}
+}
+
+func checkHttpService(dc *models.DaemonClient) {
+	handleCheckStarted(dc)
+	var msg string
+
+	isOk := checkHttp("http://"+ daemonDNSServiceA + ":8090/hello")
+	isOk &= checkHttp("http://"+ daemonDNSServiceB + ":8090/hello")
+	isOk &= checkHttp("http://"+ daemonDNSServiceC + ":8090/hello")
+
+	handleCheckFinished(dc, isOk)
+
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.HTTP_SERVICE_ABC, IsOk: isOk, Message: msg}
 }
 
 func checkHttpHaProxy(dc *models.DaemonClient, publicUrl string) {
