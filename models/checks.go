@@ -8,4 +8,6 @@ type Checks struct {
 	DnsCheck        bool
 	HttpChecks      bool
 	DeamonPublicUrl string
+	EtcdCheck       bool
+	EtcdIps         string
 }

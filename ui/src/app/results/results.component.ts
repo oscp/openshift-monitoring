@@ -10,16 +10,18 @@ import {BaseChartDirective} from "ng2-charts";
 })
 export class ResultsComponent implements OnInit {
     // Dognut charts
-    public errorLabels: string[] = [];
-    public errorData: number[] = [];
-    public errorChecks: Array<any> = [];
+    public dognutChartType: string = 'doughnut';
+    public dognutChartOptions: any = {
+        legend: {
+            display: false
+        }
+    };
+    public checkTypeLabels: string[] = ["MASTER_API_CHECK", "DNS_NSLOOKUP_KUBERNETES", "DNS_SERVICE_NODE",
+        "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_HAPROXY", "ETCD_HEALTH"];
 
-    public successLabels: string[] = [];
-    public successData: number[] = [];
-    public dognutBgColors: any[] = [{
-        backgroundColor: '#36A2EB'
-    }]
-    public chartType: string = 'doughnut';
+    public errorData: number[] = [0,0,0,0,0,0,0,0];
+    public successData: number[] = [0,0,0,0,0,0,0,0];
+    public errors: Array<any> = [];
 
     public checkOverviewLabels: string[] = ['Started', 'Finished'];
     public checkOverviewData: number[] = [0, 0];
@@ -112,42 +114,30 @@ export class ResultsComponent implements OnInit {
 
     private handleErrorResult(msg) {
         this.errorCount++;
-        let idx = this.errorLabels.findIndex(m => m == msg.Type);
+        let idx = this.checkTypeLabels.findIndex(m => m == msg.Type);
 
         if (idx > -1) {
             this.errorData[idx] += 1;
-        } else {
-            this.errorLabels.push(msg.Type);
-            this.errorData.push(1);
         }
 
         // Enforce refresh
         this.errorData = this.errorData.slice();
-        this.errorLabels = this.errorLabels.slice();
 
         // Tell the user about it
         msg.Date = new Date();
-        this.errorChecks.push(msg);
+        this.errors.push(msg);
         this.notificationService.error(`check ${msg.Type} failed.`, msg.Message);
     }
 
     private handleSuccessResult(msg) {
         this.successCount++;
-        let idx = this.successLabels.findIndex(m => m == msg.Type);
+        let idx = this.checkTypeLabels.findIndex(m => m == msg.Type);
 
         if (idx > -1) {
             this.successData[idx] += 1;
-        } else {
-            this.successLabels.push(msg.Type);
-            this.successData.push(1);
-            this.dognutBgColors.push({
-                backgroundColor: idx % 2 === 0 ? '#36A2EB' : '#FF6384'
-            });
         }
 
         // Enforce refresh
         this.successData = this.successData.slice();
-        this.successLabels = this.successLabels.slice();
-        this.dognutBgColors = this.dognutBgColors.slice();
     }
 }

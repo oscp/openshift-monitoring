@@ -7,9 +7,9 @@
         <div class="col-xs-4">
             <canvas baseChart
                     [data]="successData"
-                    [labels]="successLabels"
-                    [colors]="dognutBgColors"
-                    [chartType]="chartType"></canvas>
+                    [labels]="checkTypeLabels"
+                    [options]="dognutChartOptions"
+                    [chartType]="dognutChartType"></canvas>
         </div>
         <div class="col-xs-6">
             <canvas baseChart height="400" width="900" #linechart
@@ -22,9 +22,8 @@
         <div class="col-xs-2">
             <canvas baseChart
                     [data]="checkOverviewData"
-                    [colors]="dognutBgColors"
                     [labels]="checkOverviewLabels"
-                    [chartType]="chartType"></canvas>
+                    [chartType]="dognutChartType"></canvas>
         </div>
     </div>
     <br/><br/>
@@ -33,8 +32,9 @@
         <div class="col-xs-4">
             <canvas baseChart
                     [data]="errorData"
-                    [labels]="errorLabels"
-                    [chartType]="chartType"></canvas>
+                    [labels]="checkTypeLabels"
+                    [options]="dognutChartOptions"
+                    [chartType]="dognutChartType"></canvas>
         </div>
         <div class="col-xs-8">
             <table class="table table-striped table-condensed">
@@ -47,7 +47,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr *ngFor="let e of errorChecks">
+                <tr *ngFor="let e of errors">
                     <td>{{e.Date  | date: 'dd.MM.yyyy HH:mm:ss'}}</td>
                     <td>{{e.Hostname}}</td>
                     <td>{{e.Type}}</td>

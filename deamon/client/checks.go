@@ -23,7 +23,7 @@ const (
 
 func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 	tickExt := time.Tick(time.Duration(checks.CheckInterval) * time.Millisecond)
-	tickInt := time.Tick(5 * time.Second)
+	tickInt := time.Tick(3 * time.Second)
 
 	log.Println("starting checks")
 
@@ -36,6 +36,9 @@ func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 			case <-tickInt:
 				if (checks.MasterApiCheck) {
 					go checkMasterApis(dc, checks.MasterApiUrls)
+				}
+				if (checks.EtcdCheck && dc.Deamon.IsMaster()) {
+					go checkEtcdHealth(dc, checks.EtcdIps)
 				}
 			case <-tickExt:
 				if (checks.DnsCheck) {
@@ -219,4 +222,32 @@ func checkHttpHaProxy(dc *models.DeamonClient, publicUrl string) {
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_HAPROXY, IsOk: isOk, Message: msg}
+}
+
+func checkEtcdHealth(dc *models.DeamonClient, etcdIps string) {
+	handleCheckStarted(dc)
+	var msg string
+	isOk := true
+
+	cmd := exec.Command("etcdctl --peers ", etcdIps, "--ca-file /etc/etcd/ca.crt --key-file /etc/etcd/peer.key --cert-file /etc/etcd/peer.crt  cluster-health")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		isOk = false
+		log.Println("error while running etcd health check", err)
+		msg = "etcd health check failed: " + err.Error()
+	}
+
+	stdOut := out.String()
+
+	if (!strings.Contains(stdOut, "cluster is healthy")) {
+		isOk = false
+		msg += "Etcd health check was 'cluster unhealthy'"
+	}
+
+	handleCheckFinished(dc, isOk)
+
+	// Tell the hub about it
+	dc.ToHub <- models.CheckResult{Type: models.ETCD_HEALTH, IsOk: isOk, Message: msg}
 }
