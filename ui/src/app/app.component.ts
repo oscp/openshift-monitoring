@@ -2,12 +2,18 @@ import {Component} from '@angular/core';
 
 @Component({
     selector: 'app-root',
-    template: `
-<br/><div class='container-fluid'>
+    template: `<br/>
+<div class='container-fluid'>
     <h3>OpenShift - Updatemonitoring</h3>
     <simple-notifications [options]='notificationOptions'></simple-notifications>
-    <app-deamon-overview></app-deamon-overview>
-    <app-checks></app-checks>
+    <div class="row">
+        <div class="col">
+            <app-deamon-overview></app-deamon-overview>
+        </div>
+        <div class="col">
+            <app-checks></app-checks>
+        </div>
+    </div>
     <app-results></app-results>
 </div>
     `

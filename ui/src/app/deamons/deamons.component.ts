@@ -5,25 +5,7 @@ import {NotificationsService} from 'angular2-notifications';
 
 @Component({
   selector: 'app-deamon-overview',
-  template: `
-        <h4>Connected Deamons</h4>
-        <table class='table table-striped'>
-            <thead class='thead-inverse'>
-                <tr>
-                <th>Hostname</th>
-                <th>Type</th>
-                <th>Checks started/ok/failed</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor='let d of deamons'>
-                    <td>{{d.Hostname}}</td>
-                    <td>{{d.DeamonType}}</td>
-                    <td><i class="fa fa-circle-o-notch"></i> {{d.StartedChecks}} <i class="fa fa-check-circle"></i> {{d.SuccessfulChecks}} <i class="fa fa-times-circle"></i> {{d.FailedChecks}}</td>
-                </tr>
-            </tbody>
-        </table>
-    `
+  templateUrl: './deamons.component.html'
 })
 export class DeamonsComponent implements OnInit {
   private deamons: any;
