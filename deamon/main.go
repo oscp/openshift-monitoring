@@ -14,8 +14,12 @@ func main() {
 	deamonType := os.Getenv("DEAMON_TYPE")
 	namespace := os.Getenv("POD_NAMESPACE")
 
-	if (len(hubAddr) == 0 || len(deamonType) == 0 || len(namespace) == 0) {
-		log.Fatal("env variables 'HUB_ADDRESS', 'DEAMON_TYPE', 'POD_NAMESPACE' must be specified")
+	if (len(hubAddr) == 0 || len(deamonType) == 0) {
+		log.Fatal("env variables 'HUB_ADDRESS', 'DEAMON_TYPE' must be specified")
+	}
+
+	if (deamonType == "POD" && len(namespace) == 0) {
+		log.Fatal("if type is 'POD' env variable 'POD_NAMESPACE' needs to be specified")
 	}
 
 	// Register on hub
