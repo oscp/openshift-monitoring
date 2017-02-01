@@ -43,6 +43,15 @@ func handleCheckFinished(dc *models.DaemonClient, ok bool) {
 	updateDaemonOnHub(dc)
 }
 
+func handleChecksStopped(dc *models.DaemonClient) {
+	log.Println("stopped checks")
+
+	dc.Daemon.StartedChecks = 0;
+	dc.Daemon.FailedChecks = 0;
+	dc.Daemon.SuccessfulChecks = 0;
+	updateDaemonOnHub(dc)
+}
+
 func updateDaemonOnHub(dc *models.DaemonClient) {
 	var rep string
 	err := dc.Client.Call("updateCheckcount", dc.Daemon, &rep)

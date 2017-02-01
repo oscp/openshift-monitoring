@@ -31,7 +31,7 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 		for {
 			select {
 			case <-dc.Quit:
-				log.Println("stopped checks")
+				handleChecksStopped(dc)
 				return
 			case <-tickInt:
 				if (checks.MasterApiCheck) {
