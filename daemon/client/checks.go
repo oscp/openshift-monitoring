@@ -217,9 +217,9 @@ func checkHttpService(dc *models.DaemonClient) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOkA := checkHttp("http://"+ daemonDNSServiceA + ":8090/hello")
-	isOkB := checkHttp("http://"+ daemonDNSServiceB + ":8090/hello")
-	isOkC := checkHttp("http://"+ daemonDNSServiceC + ":8090/hello")
+	isOkA := checkHttp("http://" + daemonDNSServiceA + ":8090/hello")
+	isOkB := checkHttp("http://" + daemonDNSServiceB + ":8090/hello")
+	isOkC := checkHttp("http://" + daemonDNSServiceC + ":8090/hello")
 
 	isOk := true
 	if (!isOkA || !isOkB || !isOkC) {
@@ -250,7 +250,8 @@ func checkEtcdHealth(dc *models.DaemonClient, etcdIps string) {
 	var msg string
 	isOk := true
 
-	cmd := exec.Command("etcdctl --peers ", etcdIps, "--ca-file /etc/etcd/ca.crt --key-file /etc/etcd/peer.key --cert-file /etc/etcd/peer.crt  cluster-health")
+	cmd := exec.Command("etcdctl", "--peers", etcdIps, "--ca-file", "/etc/etcd/ca.crt",
+		"--key-file", "/etc/etcd/peer.key", "--cert-file", "/etc/etcd/peer.crt", "cluster-health")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -261,7 +262,6 @@ func checkEtcdHealth(dc *models.DaemonClient, etcdIps string) {
 	}
 
 	stdOut := out.String()
-
 	if (!strings.Contains(stdOut, "cluster is healthy")) {
 		isOk = false
 		msg += "Etcd health check was 'cluster unhealthy'"
