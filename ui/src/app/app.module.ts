@@ -5,7 +5,7 @@ import {HttpModule} from '@angular/http';
 import {AppComponent} from './app.component';
 import {SocketService} from './socket.service';
 import {SimpleNotificationsModule} from 'angular2-notifications';
-import {DeamonsComponent} from './deamons/deamons.component';
+import {DaemonsComponent} from './daemons/daemons.component';
 import { ChecksComponent } from './checks/checks.component';
 import { ResultsComponent } from './results/results.component';
 import {ChartsModule} from "ng2-charts";
@@ -13,7 +13,7 @@ import {ChartsModule} from "ng2-charts";
 @NgModule({
   declarations: [
     AppComponent,
-    DeamonsComponent,
+    DaemonsComponent,
     ChecksComponent,
     ResultsComponent
   ],

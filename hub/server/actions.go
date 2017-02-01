@@ -7,39 +7,39 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func deamonLeave(h *Hub, host string) {
-	log.Println("deamon left: ", host)
-	delete(h.deamons, host)
+func daemonLeave(h *Hub, host string) {
+	log.Println("daemon left: ", host)
+	delete(h.daemons, host)
 
-	h.toUi <- models.BaseModel{Type: models.DEAMON_LEFT, Message: host}
+	h.toUi <- models.BaseModel{Type: models.DAEMON_LEFT, Message: host}
 }
 
-func deamonJoin(h *Hub, d *models.Deamon, c *rpc2.Client) {
-	log.Println("new deamon joined:", d)
+func daemonJoin(h *Hub, d *models.Daemon, c *rpc2.Client) {
+	log.Println("new daemon joined:", d)
 
-	h.deamons[d.Hostname] = &models.DeamonClient{Client:c, Deamon: *d}
+	h.daemons[d.Hostname] = &models.DaemonClient{Client:c, Daemon: *d}
 
 	if (h.currentChecks.IsRunning) {
-		// Tell the new deamon to join the checks
+		// Tell the new daemon to join the checks
 		if err := c.Call("startChecks", h.currentChecks, nil); err != nil {
-			log.Println("error starting checks on newly joined deamon", err)
+			log.Println("error starting checks on newly joined daemon", err)
 		}
 	}
 
-	h.toUi <- models.BaseModel{Type: models.NEW_DEAMON, Message: d.Hostname}
+	h.toUi <- models.BaseModel{Type: models.NEW_DAEMON, Message: d.Hostname}
 }
 
-func updateCheckcount(h *Hub, d *models.Deamon) {
-	h.deamons[d.Hostname].Deamon = *d
+func updateCheckcount(h *Hub, d *models.Daemon) {
+	h.daemons[d.Hostname].Daemon = *d
 
 	// Tell the UI about it
-	h.toUi <- models.BaseModel{Type: models.ALL_DEAMONS, Message: h.Deamons()}
+	h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
 }
 
 func startChecks(h *Hub, msg interface{}) models.BaseModel {
 	checks := getChecksStruct(msg)
 
-	// Save current state & tell deamons
+	// Save current state & tell daemons
 	checks.IsRunning = true
 	h.currentChecks = checks
 	h.startChecks <- checks
@@ -49,7 +49,7 @@ func startChecks(h *Hub, msg interface{}) models.BaseModel {
 }
 
 func stopChecks(h *Hub) models.BaseModel {
-	// Save current state & tell deamons
+	// Save current state & tell daemons
 	h.currentChecks.IsRunning = false
 	h.stopChecks <- true
 

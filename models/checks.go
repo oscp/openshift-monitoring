@@ -7,7 +7,7 @@ type Checks struct {
 	MasterApiUrls   string
 	DnsCheck        bool
 	HttpChecks      bool
-	DeamonPublicUrl string
+	DaemonPublicUrl string
 	EtcdCheck       bool
 	EtcdIps         string
 }

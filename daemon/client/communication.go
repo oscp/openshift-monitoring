@@ -7,10 +7,10 @@ import (
 	"github.com/cenkalti/rpc2"
 )
 
-func registerOnHub(h string, dc *models.DeamonClient) {
+func registerOnHub(h string, dc *models.DaemonClient) {
 	log.Println("registring on hub:", h)
 	var rep string
-	err := dc.Client.Call("register", dc.Deamon, &rep)
+	err := dc.Client.Call("register", dc.Daemon, &rep)
 	if err != nil {
 		log.Fatal("error registring on hub: ", err)
 	}
@@ -29,32 +29,32 @@ func unregisterOnHub(c *rpc2.Client) {
 	c.Close()
 }
 
-func handleCheckStarted(dc *models.DeamonClient) {
-	dc.Deamon.StartedChecks++
-	updateDeamonOnHub(dc)
+func handleCheckStarted(dc *models.DaemonClient) {
+	dc.Daemon.StartedChecks++
+	updateDaemonOnHub(dc)
 }
 
-func handleCheckFinished(dc *models.DeamonClient, ok bool) {
+func handleCheckFinished(dc *models.DaemonClient, ok bool) {
 	if (ok) {
-		dc.Deamon.SuccessfulChecks++
+		dc.Daemon.SuccessfulChecks++
 	} else {
-		dc.Deamon.FailedChecks++
+		dc.Daemon.FailedChecks++
 	}
-	updateDeamonOnHub(dc)
+	updateDaemonOnHub(dc)
 }
 
-func updateDeamonOnHub(dc *models.DeamonClient) {
+func updateDaemonOnHub(dc *models.DaemonClient) {
 	var rep string
-	err := dc.Client.Call("updateCheckcount", dc.Deamon, &rep)
+	err := dc.Client.Call("updateCheckcount", dc.Daemon, &rep)
 	if err != nil {
 		log.Println("error updating Checkcounts on hub: ", err)
 	}
 }
 
-func handleCheckResultToHub(dc *models.DeamonClient) {
+func handleCheckResultToHub(dc *models.DaemonClient) {
 	for {
 		var r models.CheckResult = <- dc.ToHub
-		r.Hostname = dc.Deamon.Hostname
+		r.Hostname = dc.Daemon.Hostname
 
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {
 			log.Println("error sending CheckResult to hub", err)

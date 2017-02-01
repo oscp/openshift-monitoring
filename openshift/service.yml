@@ -5,8 +5,8 @@ metadata:
     openshift.io/generated-by: OpenShiftNewApp
   creationTimestamp: null
   labels:
-    app: deamon
-  name: deamon
+    app: daemon
+  name: daemon
 spec:
   ports:
   - name: 8090-tcp
@@ -14,7 +14,7 @@ spec:
     protocol: TCP
     targetPort: 8090
   selector:
-    app: deamon
+    app: daemon
   sessionAffinity: None
   type: ClusterIP
 status:

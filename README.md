@@ -26,7 +26,7 @@ So we try hard to test new versions & config in our test environment. As our tes
 # Components
 - UI
 - UI Backend: WS-Gateway
-- Deamon: Deploy on master/node/various pods
+- Daemon: Deploy on master/node/various pods
 
 # Installation
 
@@ -39,7 +39,7 @@ oc new-project ose-mon-c
 # Join projects a <> c
 oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
 
-# Install deamonset
+# Install daemonset
 
 
 ```

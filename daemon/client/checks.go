@@ -13,15 +13,15 @@ import (
 )
 
 const (
-	deamonDNSEndpoint = "deamon.ose-mon-a.endpoints.cluster.local"
-	deamonDNSServiceA = "deamon.ose-mon-a.svc.cluster.local"
-	deamonDNSServiceB = "deamon.ose-mon-b.svc.cluster.local"
-	deamonDNSServiceC = "deamon.ose-mon-c.svc.cluster.local"
-	deamonDNSPod = "deamon"
+	daemonDNSEndpoint = "daemon.ose-mon-a.endpoints.cluster.local"
+	daemonDNSServiceA = "daemon.ose-mon-a.svc.cluster.local"
+	daemonDNSServiceB = "daemon.ose-mon-b.svc.cluster.local"
+	daemonDNSServiceC = "daemon.ose-mon-c.svc.cluster.local"
+	daemonDNSPod = "daemon"
 	kubernetesIP = "172.30.0.1"
 )
 
-func startChecks(dc *models.DeamonClient, checks *models.Checks) {
+func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 	tickExt := time.Tick(time.Duration(checks.CheckInterval) * time.Millisecond)
 	tickInt := time.Tick(3 * time.Second)
 
@@ -37,45 +37,45 @@ func startChecks(dc *models.DeamonClient, checks *models.Checks) {
 				if (checks.MasterApiCheck) {
 					go checkMasterApis(dc, checks.MasterApiUrls)
 				}
-				if (checks.EtcdCheck && dc.Deamon.IsMaster()) {
+				if (checks.EtcdCheck && dc.Daemon.IsMaster()) {
 					go checkEtcdHealth(dc, checks.EtcdIps)
 				}
 			case <-tickExt:
 				if (checks.DnsCheck) {
 					go checkDnsNslookupOnKubernetes(dc)
 
-					if (dc.Deamon.IsNode()) {
+					if (dc.Daemon.IsNode()) {
 						go checkDnsServiceNode(dc)
 					}
 
-					if (dc.Deamon.IsPod()) {
+					if (dc.Daemon.IsPod()) {
 						go checkDnsInPod(dc)
 					}
 				}
 
 				if (checks.HttpChecks) {
-					if (dc.Deamon.IsNode() || (dc.Deamon.IsPod() && strings.HasSuffix(dc.Deamon.Namespace, "a"))) {
+					if (dc.Daemon.IsNode() || (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a"))) {
 						go checkPodHttpAtoB(dc)
 						go checkPodHttpAtoC(dc)
 					}
 
-					go checkHttpHaProxy(dc, checks.DeamonPublicUrl)
+					go checkHttpHaProxy(dc, checks.DaemonPublicUrl)
 				}
 			}
 		}
 	}()
 }
 
-func stopChecks(dc *models.DeamonClient) {
+func stopChecks(dc *models.DaemonClient) {
 	dc.Quit <- true
 }
 
-func checkDnsNslookupOnKubernetes(dc *models.DeamonClient) {
+func checkDnsNslookupOnKubernetes(dc *models.DaemonClient) {
 	handleCheckStarted(dc)
 	isOk := false
 	var msg string
 
-	cmd := exec.Command("nslookup", deamonDNSEndpoint, kubernetesIP)
+	cmd := exec.Command("nslookup", daemonDNSEndpoint, kubernetesIP)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -99,16 +99,16 @@ func checkDnsNslookupOnKubernetes(dc *models.DeamonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.DNS_NSLOOKUP_KUBERNETES, IsOk: isOk, Message: msg}
 }
 
-func checkDnsServiceNode(dc *models.DeamonClient) {
+func checkDnsServiceNode(dc *models.DaemonClient) {
 	handleCheckStarted(dc)
 	isOk := false
 	var msg string
 
-	ips := getIpsForName(deamonDNSServiceA)
+	ips := getIpsForName(daemonDNSServiceA)
 
 	if (ips == nil) {
 		isOk = false
-		msg = "Failed to lookup ip on node (dnsmasq) for name " + deamonDNSServiceA
+		msg = "Failed to lookup ip on node (dnsmasq) for name " + daemonDNSServiceA
 	}
 
 	handleCheckFinished(dc, isOk)
@@ -117,16 +117,16 @@ func checkDnsServiceNode(dc *models.DeamonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.DNS_SERVICE_NODE, IsOk: isOk, Message: msg}
 }
 
-func checkDnsInPod(dc *models.DeamonClient) {
+func checkDnsInPod(dc *models.DaemonClient) {
 	handleCheckStarted(dc)
 	isOk := false
 	var msg string
 
-	ips := getIpsForName(deamonDNSPod)
+	ips := getIpsForName(daemonDNSPod)
 
 	if (ips == nil) {
 		isOk = false
-		msg = "Failed to lookup ip in pod for name " + deamonDNSPod
+		msg = "Failed to lookup ip in pod for name " + daemonDNSPod
 	} else {
 		isOk = true
 	}
@@ -146,7 +146,7 @@ func getIpsForName(n string) []net.IP {
 	return ips
 }
 
-func checkMasterApis(dc *models.DeamonClient, urls string) {
+func checkMasterApis(dc *models.DaemonClient, urls string) {
 	handleCheckStarted(dc)
 	urlArr := strings.Split(urls, ",")
 
@@ -186,12 +186,12 @@ func checkHttp(toCall string) bool {
 	}
 }
 
-func checkPodHttpAtoB(dc *models.DeamonClient) {
+func checkPodHttpAtoB(dc *models.DaemonClient) {
 	// This should fail as we do not have access to this project
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := !checkHttp("http://" + deamonDNSServiceB + ":8090/hello")
+	isOk := !checkHttp("http://" + daemonDNSServiceB + ":8090/hello")
 
 	handleCheckFinished(dc, isOk)
 
@@ -199,12 +199,12 @@ func checkPodHttpAtoB(dc *models.DeamonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_B, IsOk: isOk, Message: msg}
 }
 
-func checkPodHttpAtoC(dc *models.DeamonClient) {
+func checkPodHttpAtoC(dc *models.DaemonClient) {
 	// This should work as we joined this projects
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp("http://" + deamonDNSServiceC + ":8090/hello")
+	isOk := checkHttp("http://" + daemonDNSServiceC + ":8090/hello")
 
 	handleCheckFinished(dc, isOk)
 
@@ -212,7 +212,7 @@ func checkPodHttpAtoC(dc *models.DeamonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_C, IsOk: isOk, Message: msg}
 }
 
-func checkHttpHaProxy(dc *models.DeamonClient, publicUrl string) {
+func checkHttpHaProxy(dc *models.DaemonClient, publicUrl string) {
 	handleCheckStarted(dc)
 	var msg string
 
@@ -224,7 +224,7 @@ func checkHttpHaProxy(dc *models.DeamonClient, publicUrl string) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_HAPROXY, IsOk: isOk, Message: msg}
 }
 
-func checkEtcdHealth(dc *models.DeamonClient, etcdIps string) {
+func checkEtcdHealth(dc *models.DaemonClient, etcdIps string) {
 	handleCheckStarted(dc)
 	var msg string
 	isOk := true

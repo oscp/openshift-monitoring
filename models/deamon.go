@@ -2,29 +2,29 @@ package models
 
 import "github.com/cenkalti/rpc2"
 
-type Deamon struct {
+type Daemon struct {
 	Hostname         string
 	Namespace        string
-	DeamonType       string
+	DaemonType       string
 	StartedChecks    int
 	SuccessfulChecks int
 	FailedChecks     int
 }
 
-func (d *Deamon) IsMaster() bool {
-	return d.DeamonType == "MASTER"
+func (d *Daemon) IsMaster() bool {
+	return d.DaemonType == "MASTER"
 }
 
-func (d *Deamon) IsNode() bool {
-	return d.DeamonType == "NODE"
+func (d *Daemon) IsNode() bool {
+	return d.DaemonType == "NODE"
 }
 
-func (d *Deamon) IsPod() bool {
-	return d.DeamonType == "POD"
+func (d *Daemon) IsPod() bool {
+	return d.DaemonType == "POD"
 }
 
-type DeamonClient struct {
-	Deamon Deamon
+type DaemonClient struct {
+	Daemon Daemon
 	Client *rpc2.Client
 	Quit   chan bool
 	ToHub  chan CheckResult

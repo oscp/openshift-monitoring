@@ -9,24 +9,24 @@ import (
 
 type Hub struct {
 	hubAddr       string
-	deamons       map[string]*models.DeamonClient
+	daemons       map[string]*models.DaemonClient
 	currentChecks models.Checks
 	startChecks   chan models.Checks
 	stopChecks    chan bool
 	toUi          chan models.BaseModel
 }
 
-func NewHub(hubAddr string, masterApiUrls string, deamonPublicUrl string, etcdIps string) *Hub {
+func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string, etcdIps string) *Hub {
 	return &Hub{
 		hubAddr: hubAddr,
-		deamons: make(map[string]*models.DeamonClient),
+		daemons: make(map[string]*models.DaemonClient),
 		startChecks: make(chan models.Checks),
 		stopChecks: make(chan bool),
 		toUi: make(chan models.BaseModel, 1000),
 		currentChecks: models.Checks{
 			CheckInterval: 5000,
 			MasterApiUrls: masterApiUrls,
-			DeamonPublicUrl: deamonPublicUrl,
+			DaemonPublicUrl: daemonPublicUrl,
 			MasterApiCheck: true,
 			HttpChecks: true,
 			DnsCheck:true,
@@ -36,10 +36,10 @@ func NewHub(hubAddr string, masterApiUrls string, deamonPublicUrl string, etcdIp
 	}
 }
 
-func (h *Hub) Deamons() []models.Deamon {
-	r := []models.Deamon{}
-	for _, d := range h.deamons {
-		r = append(r, d.Deamon)
+func (h *Hub) Daemons() []models.Daemon {
+	r := []models.Daemon{}
+	for _, d := range h.daemons {
+		r = append(r, d.Daemon)
 	}
 	return r
 }
@@ -49,20 +49,20 @@ func (h *Hub) Serve() {
 	go handleChecksStop(h)
 
 	srv := rpc2.NewServer()
-	srv.Handle("register", func(c *rpc2.Client, d *models.Deamon, reply *string) error {
+	srv.Handle("register", func(c *rpc2.Client, d *models.Daemon, reply *string) error {
 		// Save client for talking to him later
-		deamonJoin(h, d, c)
+		daemonJoin(h, d, c)
 
 		*reply = "ok"
 		return nil
 	})
 	srv.Handle("unregister", func(cl *rpc2.Client, host *string, reply *string) error {
-		deamonLeave(h, *host)
+		daemonLeave(h, *host)
 
 		*reply = "ok"
 		return nil
 	})
-	srv.Handle("updateCheckcount", func(cl *rpc2.Client, d *models.Deamon, reply *string) error {
+	srv.Handle("updateCheckcount", func(cl *rpc2.Client, d *models.Daemon, reply *string) error {
 		updateCheckcount(h, d)
 
 		*reply = "ok"
@@ -83,9 +83,9 @@ func (h *Hub) Serve() {
 func handleChecksStart(h *Hub) {
 	for {
 		var checks models.Checks = <-h.startChecks
-		for _, d := range h.deamons {
+		for _, d := range h.daemons {
 			if err := d.Client.Call("startChecks", checks, nil); err != nil {
-				log.Println("error starting checks on deamon", err)
+				log.Println("error starting checks on daemon", err)
 			}
 		}
 	}
@@ -96,9 +96,9 @@ func handleChecksStop(h *Hub) {
 		var stop bool = <-h.stopChecks
 
 		if (stop) {
-			for _, d := range h.deamons {
+			for _, d := range h.daemons {
 				if err := d.Client.Call("stopChecks", stop, nil); err != nil {
-					log.Println("error stopping checks on deamon", err)
+					log.Println("error stopping checks on daemon", err)
 				}
 			}
 		}

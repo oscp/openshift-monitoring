@@ -7,17 +7,17 @@ import (
 	"os"
 )
 
-func StartDeamon(h string, dt string, ns string) *rpc2.Client {
+func StartDaemon(h string, dt string, ns string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
-	d := models.Deamon{Hostname: host,
+	d := models.Daemon{Hostname: host,
 		Namespace: ns,
-		DeamonType: dt,
+		DaemonType: dt,
 		StartedChecks: 0,
 		FailedChecks:0,
 		SuccessfulChecks:0}
 
-	dc := &models.DeamonClient{Deamon: d,
+	dc := &models.DaemonClient{Daemon: d,
 		Quit: make(chan bool),
 		ToHub: make(chan models.CheckResult)}
 
@@ -43,7 +43,7 @@ func StartDeamon(h string, dt string, ns string) *rpc2.Client {
 	return dc.Client
 }
 
-func StopDeamon(c *rpc2.Client) {
+func StopDaemon(c *rpc2.Client) {
 	unregisterOnHub(c)
 }
 

@@ -4,21 +4,21 @@ metadata:
   creationTimestamp: null
   generation: 4
   labels:
-    app: deamon
-  name: deamon
+    app: daemon
+  name: daemon
 spec:
   selector:
     matchLabels:
-      app: deamon
+      app: daemon
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: deamon
+        app: daemon
     spec:
       containers:
       - env:
-        - name: DEAMON_TYPE
+        - name: DAEMON_TYPE
           value: POD
         - name: HUB_ADDRESS
           value: yourmaster:2600
@@ -26,7 +26,7 @@ spec:
           value: ose-mon-a
         image: theimage:tag
         imagePullPolicy: Always
-        name: deamon
+        name: daemon
         resources: {}
         terminationMessagePath: /dev/termination-log
       dnsPolicy: ClusterFirst

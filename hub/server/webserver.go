@@ -51,8 +51,8 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 
 		var res interface{}
 		switch msg.Type {
-		case models.ALL_DEAMONS:
-			res = models.BaseModel{Type: models.ALL_DEAMONS, Message: h.Deamons()}
+		case models.ALL_DAEMONS:
+			res = models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
 			break
 		case models.START_CHECKS:
 			res = startChecks(h, msg.Message)

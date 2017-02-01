@@ -10,19 +10,19 @@ import (
 var uiAddr = flag.String("UI_ADDR", "localhost:8080", "http service endpoint")
 var hubAddr = flag.String("RPC_ADDR", "localhost:2600", "go hub rcp2 address")
 var masterApiUrls = flag.String("MASTER_API_URLS", "https://master1:8443,https://master2:8443", "addresses of master api's")
-var deamonPublicUrl = flag.String("DEAMON_PUBLIC_URL", "http://deamon.yourroute.com", "external address of the deamon service (route)")
+var daemonPublicUrl = flag.String("DAEMON_PUBLIC_URL", "http://daemon.yourroute.com", "external address of the daemon service (route)")
 var etcdIps = flag.String("ETCD_IPS", "https://localhost:2379,https://server1:2379", "adresses of etcd servers")
 
 func main() {
 	flag.Parse()
-	log.Println("hub waiting for deamons on ", *hubAddr)
+	log.Println("hub waiting for daemons on ", *hubAddr)
 	log.Println("ui server waiting for websocket on ", *uiAddr)
 	log.Println("master api urls are ", *masterApiUrls)
-	log.Println("deamons public url is ", *deamonPublicUrl)
+	log.Println("daemons public url is ", *daemonPublicUrl)
 	log.Println("etcd ips are ", *etcdIps)
 
 	// Start hub rcp server
-	hub := server.NewHub(*hubAddr, *masterApiUrls, *deamonPublicUrl, *etcdIps)
+	hub := server.NewHub(*hubAddr, *masterApiUrls, *daemonPublicUrl, *etcdIps)
 	go hub.Serve()
 
 	// Start websocket server for ui

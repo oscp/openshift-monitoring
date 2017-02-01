@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/deamon/client"
+	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/daemon/client"
 	"os"
 	"os/signal"
 	"log"
@@ -11,19 +11,19 @@ import (
 func main() {
 	// Get config
 	hubAddr := os.Getenv("HUB_ADDRESS")
-	deamonType := os.Getenv("DEAMON_TYPE")
+	daemonType := os.Getenv("DAEMON_TYPE")
 	namespace := os.Getenv("POD_NAMESPACE")
 
-	if (len(hubAddr) == 0 || len(deamonType) == 0) {
-		log.Fatal("env variables 'HUB_ADDRESS', 'DEAMON_TYPE' must be specified")
+	if (len(hubAddr) == 0 || len(daemonType) == 0) {
+		log.Fatal("env variables 'HUB_ADDRESS', 'DAEMON_TYPE' must be specified")
 	}
 
-	if (deamonType == "POD" && len(namespace) == 0) {
+	if (daemonType == "POD" && len(namespace) == 0) {
 		log.Fatal("if type is 'POD' env variable 'POD_NAMESPACE' needs to be specified")
 	}
 
 	// Register on hub
-	cl := client.StartDeamon(hubAddr, deamonType, namespace)
+	cl := client.StartDaemon(hubAddr, daemonType, namespace)
 
 	// Create webserver for checks
 	go client.ServeWeb()
@@ -35,7 +35,7 @@ func main() {
 	func() {
 		<-c
 		log.Println("got sigterm, unregistring on hub")
-		client.StopDeamon(cl)
+		client.StopDaemon(cl)
 		os.Exit(1)
 	}()
 }

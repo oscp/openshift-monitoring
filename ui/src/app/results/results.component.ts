@@ -54,19 +54,19 @@ export class ResultsComponent implements OnInit {
                     case SocketType.CHECK_RESULT:
                         this.handleResult(data.Message);
                         break;
-                    case SocketType.ALL_DEAMONS:
-                        this.handleDeamonUpdate(data.Message);
+                    case SocketType.ALL_DAEMONS:
+                        this.handleDaemonUpdate(data.Message);
                         break;
                 }
             }
         );
     }
 
-    private handleDeamonUpdate(deamons) {
+    private handleDaemonUpdate(daemons) {
         this.checkOverviewData[0] = 0;
         this.checkOverviewData[1] = 0;
 
-        deamons.forEach(d => {
+        daemons.forEach(d => {
             this.checkOverviewData[0] += d.StartedChecks;
             this.checkOverviewData[1] += d.FailedChecks + d.SuccessfulChecks;
         });
