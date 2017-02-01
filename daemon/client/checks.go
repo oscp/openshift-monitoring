@@ -59,7 +59,10 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 						go checkPodHttpAtoC(dc)
 					}
 
-					go checkHttpService(dc)
+					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
+						go checkHttpService(dc)
+					}
+
 					go checkHttpHaProxy(dc, checks.DaemonPublicUrl)
 				}
 			}
@@ -108,8 +111,9 @@ func checkDnsServiceNode(dc *models.DaemonClient) {
 	ips := getIpsForName(daemonDNSServiceA)
 
 	if (ips == nil) {
-		isOk = false
 		msg = "Failed to lookup ip on node (dnsmasq) for name " + daemonDNSServiceA
+	} else {
+		isOk = true
 	}
 
 	handleCheckFinished(dc, isOk)
@@ -126,7 +130,6 @@ func checkDnsInPod(dc *models.DaemonClient) {
 	ips := getIpsForName(daemonDNSPod)
 
 	if (ips == nil) {
-		isOk = false
 		msg = "Failed to lookup ip in pod for name " + daemonDNSPod
 	} else {
 		isOk = true

@@ -20,7 +20,7 @@ export class DaemonsComponent implements OnInit {
         let data = JSON.parse(msg.data);
         switch (data.Type) {
           case SocketType.ALL_DAEMONS:
-            this.daemons = data.Message;
+            this.daemons = data.Message.sort();
             break;
           case SocketType.NEW_DAEMON:
             this.notificationService.info('Daemon joined', 'New daemon joined: ' + data.Message);
