@@ -25,7 +25,7 @@
     <div class="form-group row">
         <label for="interval" class="col-sm-2 col-form-label">Check interval</label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" name="interval" id="interval"
+            <input type="number" class="form-control" name="interval" id="interval"
                    [(ngModel)]="checks.CheckInterval">
         </div>
     </div>
@@ -46,7 +46,7 @@
             </label>
             <label class="form-check-label">
                 <input type="checkbox" name="etcdchecks" id="etcdchecks"
-                       [(ngModel)]="checks.EtcdCecks"> Etcd-Checks
+                       [(ngModel)]="checks.EtcdChecks"> Etcd-Checks
             </label>
         </div>
     </div>
