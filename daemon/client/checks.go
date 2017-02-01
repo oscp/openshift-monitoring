@@ -217,9 +217,15 @@ func checkHttpService(dc *models.DaemonClient) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp("http://"+ daemonDNSServiceA + ":8090/hello")
-	isOk &= checkHttp("http://"+ daemonDNSServiceB + ":8090/hello")
-	isOk &= checkHttp("http://"+ daemonDNSServiceC + ":8090/hello")
+	isOkA := checkHttp("http://"+ daemonDNSServiceA + ":8090/hello")
+	isOkB := checkHttp("http://"+ daemonDNSServiceB + ":8090/hello")
+	isOkC := checkHttp("http://"+ daemonDNSServiceC + ":8090/hello")
+
+	isOk := true
+	if (!isOkA || !isOkB || !isOkC) {
+		msg = "Could not reach one of the services (a/b/c)"
+		isOk = false
+	}
 
 	handleCheckFinished(dc, isOk)
 
