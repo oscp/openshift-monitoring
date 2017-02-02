@@ -1,6 +1,6 @@
 # General idea
-On our OpenShift Environment we have lots of productive apps running, so we can't have any downtime. 
-So we try hard to test new versions & config in our test environment. As our test env runs way less pods & traffic we created this tool to check all components under pressure, especially during an upgrade-test.
+We at @SchweizerischeBundesbahnen have lots of productive apps running in our OpenShift environment. So we try really hard to avoid any downtime. 
+So we test new things (versions/config and so on) in our test environment. As our test environment runs way less pods & traffic we created this tool to check all important OpenShift components under pressure, especially during a change.
 
 # Check overview
 
