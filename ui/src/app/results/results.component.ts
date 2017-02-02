@@ -51,8 +51,8 @@ export class ResultsComponent implements OnInit {
             msg => {
                 let data = JSON.parse(msg.data);
                 switch (data.Type) {
-                    case SocketType.CHECK_RESULT:
-                        this.handleResult(data.Message);
+                    case SocketType.CHECK_RESULTS:
+                        this.handleResults(data.Message);
                         break;
                     case SocketType.ALL_DAEMONS:
                         this.handleDaemonUpdate(data.Message);
@@ -75,13 +75,15 @@ export class ResultsComponent implements OnInit {
         this.checkOverviewData = this.checkOverviewData.slice();
     }
 
-    private handleResult(msg) {
-        // Handle specific by result
-        if (msg.IsOk) {
-            this.handleSuccessResult(msg);
-        } else {
-            this.handleErrorResult(msg);
-        }
+    private handleResults(msg) {
+        msg.forEach(m => {
+            // Handle specific by result
+            if (m.IsOk) {
+                this.handleSuccessResult(m);
+            } else {
+                this.handleErrorResult(m);
+            }
+        })
 
         // Handle Line-Charts
         this.handleLineResult();

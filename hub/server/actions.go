@@ -29,13 +29,6 @@ func daemonJoin(h *Hub, d *models.Daemon, c *rpc2.Client) {
 	h.toUi <- models.BaseModel{Type: models.NEW_DAEMON, Message: d.Hostname}
 }
 
-func updateCheckcount(h *Hub, d *models.Daemon) {
-	h.daemons[d.Hostname].Daemon = *d
-
-	// Tell the UI about it
-	h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
-}
-
 func startChecks(h *Hub, msg interface{}) models.BaseModel {
 	checks := getChecksStruct(msg)
 
