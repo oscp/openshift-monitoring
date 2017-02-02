@@ -29,6 +29,9 @@ So we try hard to test new versions & config in our test environment. As our tes
 
 # Installation
 
+### Config parameters
+TODO....
+
 ### OpenShift
 ```bash
 oc new-project ose-mon-a
@@ -38,9 +41,10 @@ oc new-project ose-mon-c
 # Join projects a <> c
 oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
 
-# Install the template
-TODO....
-
+# Use the template install/ose-mon-template.yaml
+# Do this for each project a,b,c
+oc project ose-mon-a
+oc process -f ose-mon-template.yaml -v DAEMON_PUBLIC_ROUTE=xxx,DS_HUB_ADDRESS=xxx,IMAGE_SPEC=xxx | oc create -f -
 ```
 
 ### Master nodes

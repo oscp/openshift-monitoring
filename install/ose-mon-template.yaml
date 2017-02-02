@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: ose-mon
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: daemon
+    name: daemon
+  spec:
+    host: ${DAEMON_PUBLIC_ROUTE}
+    port:
+      targetPort: 8090-tcp
+    to:
+      kind: Service
+      name: daemon
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: daemon
+    name: daemon
+  spec:
+    ports:
+    - name: 8090-tcp
+      port: 8090
+      protocol: TCP
+      targetPort: 8090
+    selector:
+      app: daemon
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: extensions/v1beta1
+  kind: DaemonSet
+  metadata:
+    creationTimestamp: null
+    generation: 2
+    labels:
+      app: daemon
+    name: daemon
+  spec:
+    selector:
+      matchLabels:
+        app: daemon
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: daemon
+      spec:
+        containers:
+        - env:
+          - name: DAEMON_TYPE
+            value: POD
+          - name: HUB_ADDRESS
+            value: ${DS_HUB_ADDRESS}
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: ${IMAGE_SPEC}
+          imagePullPolicy: Always
+          name: daemon
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          purpose: workingnode
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    currentNumberScheduled: 2
+    desiredNumberScheduled: 2
+    numberMisscheduled: 0
+parameters:
+- description: The public route of the daemon
+  name: DAEMON_PUBLIC_ROUTE
+  required: true
+  value: daemon.namespace.defaultroute.com
+- description: The address & port of your hub
+  name: DS_HUB_ADDRESS
+  required: true
+  value: yourmaster:2600
+- description: The pull spec of the image
+  name: IMAGE_SPEC
+  required: true
+  value: 172.30.151.39:5000/project/daemon

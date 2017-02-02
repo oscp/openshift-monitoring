@@ -5,12 +5,13 @@ import (
 	"io"
 	"time"
 	"math/rand"
+	"log"
 )
 
 func ServeWeb() {
 	http.HandleFunc("/fast", fastHandler)
 	http.HandleFunc("/slow", slowHandler)
-	go http.ListenAndServe(":8090", nil)
+	log.Fatal(http.ListenAndServe(":8090", nil))
 }
 
 func fastHandler(w http.ResponseWriter, r *http.Request) {
