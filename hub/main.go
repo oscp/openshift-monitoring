@@ -25,7 +25,9 @@ func main() {
 	hub := server.NewHub(*hubAddr, *masterApiUrls, *daemonPublicUrl, *etcdIps)
 	go hub.Serve()
 
-	// Start websocket server for ui
+	// Serve UI & websockets
+	fs := http.FileServer(http.Dir("static"))
+	http.HandleFunc("/", fs)
 	http.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
 		server.OnUISocket(hub, w, r)
 	})
