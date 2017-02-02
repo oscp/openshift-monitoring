@@ -56,14 +56,17 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 				if (checks.HttpChecks) {
 					if (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a")) {
 						go checkPodHttpAtoB(dc)
-						go checkPodHttpAtoC(dc)
+						go checkPodHttpAtoC(dc, false)
+						go checkPodHttpAtoC(dc, true)
 					}
 
 					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
-						go checkHttpService(dc)
+						go checkHttpService(dc, false)
+						go checkHttpService(dc, true)
 					}
 
-					go checkHttpHaProxy(dc, checks.DaemonPublicUrl)
+					go checkHttpHaProxy(dc, checks.DaemonPublicUrl, false)
+					go checkHttpHaProxy(dc, checks.DaemonPublicUrl, true)
 				}
 			}
 		}
@@ -203,12 +206,20 @@ func checkPodHttpAtoB(dc *models.DaemonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_B, IsOk: isOk, Message: msg}
 }
 
-func checkPodHttpAtoC(dc *models.DaemonClient) {
+func getEndpoint(slow bool) string {
+	if (slow) {
+		return "slow"
+	} else {
+		return "fast"
+	}
+}
+
+func checkPodHttpAtoC(dc *models.DaemonClient, slow bool) {
 	// This should work as we joined this projects
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp("http://" + daemonDNSServiceC + ":8090/hello")
+	isOk := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow))
 
 	handleCheckFinished(dc, isOk)
 
@@ -216,13 +227,13 @@ func checkPodHttpAtoC(dc *models.DaemonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_POD_SERVICE_A_C, IsOk: isOk, Message: msg}
 }
 
-func checkHttpService(dc *models.DaemonClient) {
+func checkHttpService(dc *models.DaemonClient, slow bool) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOkA := checkHttp("http://" + daemonDNSServiceA + ":8090/hello")
-	isOkB := checkHttp("http://" + daemonDNSServiceB + ":8090/hello")
-	isOkC := checkHttp("http://" + daemonDNSServiceC + ":8090/hello")
+	isOkA := checkHttp("http://" + daemonDNSServiceA + ":8090/" + getEndpoint(slow))
+	isOkB := checkHttp("http://" + daemonDNSServiceB + ":8090/" + getEndpoint(slow))
+	isOkC := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow))
 
 	isOk := true
 	if (!isOkA || !isOkB || !isOkC) {
@@ -236,11 +247,11 @@ func checkHttpService(dc *models.DaemonClient) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_SERVICE_ABC, IsOk: isOk, Message: msg}
 }
 
-func checkHttpHaProxy(dc *models.DaemonClient, publicUrl string) {
+func checkHttpHaProxy(dc *models.DaemonClient, publicUrl string, slow bool) {
 	handleCheckStarted(dc)
 	var msg string
 
-	isOk := checkHttp(publicUrl + ":80/hello")
+	isOk := checkHttp(publicUrl + ":80/" + getEndpoint(slow))
 
 	handleCheckFinished(dc, isOk)
 
