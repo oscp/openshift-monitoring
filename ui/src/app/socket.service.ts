@@ -25,7 +25,8 @@ export class SocketService {
 
     private connectToUI() {
         let that = this;
-        let socket = new WebSocket('ws://localhost:8080/ui');
+        let hubUrl = window.location.origin === 'http://localhost:4200' ? 'http://localhost:8080/ui' : window.location.origin + '/ui';
+        let socket = new WebSocket(hubUrl.replace('http://', 'ws://'));
         let observable = Observable.create(
             (observer: Observer<MessageEvent>) => {
                 socket.onmessage = observer.next.bind(observer);
