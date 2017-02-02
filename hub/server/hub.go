@@ -56,7 +56,6 @@ func (h *Hub) Serve() {
 	srv.Handle("register", func(c *rpc2.Client, d *models.Daemon, reply *string) error {
 		// Save client for talking to him later
 		daemonJoin(h, d, c)
-
 		*reply = "ok"
 		return nil
 	})

@@ -8,7 +8,7 @@ import (
 )
 
 func registerOnHub(h string, dc *models.DaemonClient) {
-	log.Println("registring on hub:", h)
+	log.Println("registring on the hub:", h)
 	var rep string
 	err := dc.Client.Call("register", dc.Daemon, &rep)
 	if err != nil {

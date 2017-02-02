@@ -9,9 +9,10 @@ import (
 )
 
 func ServeWeb() {
+	log.Println("starting webserver on :8090")
 	http.HandleFunc("/fast", fastHandler)
 	http.HandleFunc("/slow", slowHandler)
-	log.Fatal(http.ListenAndServe(":8090", nil))
+	go log.Fatal(http.ListenAndServe(":8090", nil))
 }
 
 func fastHandler(w http.ResponseWriter, r *http.Request) {
