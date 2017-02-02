@@ -63,6 +63,15 @@ systemctl start ose-mon-hub.service
 systemctl start ose-mon-daemon.service
 ```
 
+### Install the UI
+```bash
+cd /opt/ose-mon
+mkdir static
+
+# Todo: Copy the UI here
+```
+
+
 ### Worker nodes
 - Do the same as above, just without the hub
 
