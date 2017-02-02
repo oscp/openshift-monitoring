@@ -19,8 +19,8 @@ export class ResultsComponent implements OnInit {
     public checkTypeLabels: string[] = ["MASTER_API_CHECK", "DNS_NSLOOKUP_KUBERNETES", "DNS_SERVICE_NODE",
         "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_SERVICE_ABC", "HTTP_HAPROXY", "ETCD_HEALTH"];
 
-    public errorData: number[] = [0,0,0,0,0,0,0,0,0];
-    public successData: number[] = [0,0,0,0,0,0,0,0,0];
+    public errorData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    public successData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     public errors: Array<any> = [];
 
     public checkOverviewLabels: string[] = ['Started', 'Finished'];
@@ -38,8 +38,6 @@ export class ResultsComponent implements OnInit {
     public checkLineOptions: any = {
         responsive: true
     };
-    private LINE_CHART_INTERVAL: number = 5000;
-    private lastTime: any;
     private successCount: number = 0;
     private errorCount: number = 0;
 
@@ -52,7 +50,9 @@ export class ResultsComponent implements OnInit {
                 let data = JSON.parse(msg.data);
                 switch (data.Type) {
                     case SocketType.CHECK_RESULTS:
-                        this.handleResults(data.Message);
+                        if (data.Message.length > 0) {
+                            this.handleResults(data.Message);
+                        }
                         break;
                     case SocketType.ALL_DAEMONS:
                         this.handleDaemonUpdate(data.Message);
@@ -83,27 +83,17 @@ export class ResultsComponent implements OnInit {
             } else {
                 this.handleErrorResult(m);
             }
-        })
+        });
 
         // Handle Line-Charts
         this.handleLineResult();
     }
 
     private handleLineResult() {
-        let now: any = new Date();
-        if (this.lastTime == null || now - this.lastTime > this.LINE_CHART_INTERVAL) {
-            // Create a new data point
-            this.lastTime = now;
-            this.checkLineLabels.push(`${this.lastTime.getHours()}:${this.lastTime.getMinutes()}:${this.lastTime.getSeconds()}`);
-            this.checkLineData[0].data.push(this.successCount);
-            this.checkLineData[1].data.push(this.errorCount);
-            // Cleanup data points if to many
-        } else {
-            // Add to last data point
-            let lastPoint = this.checkLineData[0].data.length - 1;
-            this.checkLineData[0].data[lastPoint] += this.successCount;
-            this.checkLineData[1].data[lastPoint] += this.errorCount;
-        }
+        let now = new Date();
+        this.checkLineLabels.push(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`);
+        this.checkLineData[0].data.push(this.successCount);
+        this.checkLineData[1].data.push(this.errorCount);
 
         // Cleanup counters
         this.successCount = 0;

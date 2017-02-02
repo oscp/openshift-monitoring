@@ -86,7 +86,7 @@ func checkDnsNslookupOnKubernetes(dc *models.DaemonClient) {
 	if err != nil {
 		isOk = false
 		log.Println("error with nslookup: ", err)
-		msg = "DNS resolution via nslookup & kubernetes failed."
+		msg = "DNS resolution via nslookup & kubernetes failed." + err.Error()
 	}
 
 	stdOut := out.String()
