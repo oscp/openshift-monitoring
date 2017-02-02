@@ -1,0 +1,10 @@
+[Unit]
+Description=Openshift Update Monitoring Hub
+
+[Service]
+ExecStart=/opt/ose-mon/hub -RPC_ADDR=xxx -UI_ADDR=xxx -MASTER_API_URLS=xxx,xxx -DAEMON_PUBLIC_URL=xxx -ETCD_IPS=xxx
+Restart=always
+WorkingDirectory=/opt/ose-mon
+
+[Install]
+WantedBy=multi-user.target

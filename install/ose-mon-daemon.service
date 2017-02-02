@@ -1,0 +1,12 @@
+[Unit]
+Description=OSE Update Monitoring Daemon
+
+[Service]
+Environment=HUB_ADDRESS= ## add your value here ##
+Environment=DAEMON_TYPE= ## add your value here ##
+ExecStart=/opt/ose-mon/daemon
+Restart=always
+WorkingDirectory=/opt/ose-mon
+
+[Install]
+WantedBy=multi-user.target

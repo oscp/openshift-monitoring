@@ -27,7 +27,7 @@ func main() {
 
 	// Serve UI & websockets
 	fs := http.FileServer(http.Dir("static"))
-	http.HandleFunc("/", fs)
+	http.Handle("/", fs)
 	http.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
 		server.OnUISocket(hub, w, r)
 	})

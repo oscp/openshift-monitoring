@@ -44,4 +44,22 @@ TODO....
 ```
 
 ### Master nodes
-TODO.....
+```bash
+mkdir -p /opt/ose-mon
+
+# TODO: Copy hub/daemon & service definition files there
+
+chmod +x /opt/ose-mon/hub /opt/ose-mon/daemon
+
+# Add your params to the service definition files
+ln -s /opt/ose-mon/ose-mon-hub.service  /etc/systemd/system/ose-mon-hub.service
+ln -s /opt/ose-mon/ose-mon-daemon.service  /etc/systemd/system/ose-mon-daemon.service
+
+systemctl start ose-mon-hub.service
+systemctl start ose-mon-daemon.service
+```
+
+### Worker nodes
+- Do the same as above, just without the hub
+
+
