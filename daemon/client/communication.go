@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"os"
 	"github.com/cenkalti/rpc2"

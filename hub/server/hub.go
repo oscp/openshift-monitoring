@@ -2,7 +2,7 @@ package server
 
 import (
 	"log"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 	"github.com/cenkalti/rpc2"
 	"net"
 	"time"

@@ -1,8 +1,8 @@
 FROM golang:1.7.4-wheezy
 
-WORKDIR /go/src/github.com/SchweizerischeBundesbahnen/openshift-monitoring/daemon/
+WORKDIR /go/src/github.com/oscp/openshift-monitoring/daemon/
 
-COPY . /go/src/github.com/SchweizerischeBundesbahnen/openshift-monitoring/
+COPY . /go/src/github.com/oscp/openshift-monitoring/
 
 RUN go get github.com/cenkalti/rpc2
 RUN go get github.com/gorilla/websocket

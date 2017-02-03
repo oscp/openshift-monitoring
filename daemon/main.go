@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/daemon/client"
+	"github.com/oscp/openshift-monitoring/daemon/client"
 	"os"
 	"os/signal"
 	"log"

@@ -3,7 +3,7 @@ package client
 import (
 	"net"
 	"github.com/cenkalti/rpc2"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 	"os"
 )
 

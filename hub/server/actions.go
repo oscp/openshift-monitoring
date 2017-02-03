@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"github.com/cenkalti/rpc2"
 	"github.com/mitchellh/mapstructure"

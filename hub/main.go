@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/hub/server"
+	"github.com/oscp/openshift-monitoring/hub/server"
 )
 
 var uiAddr = flag.String("UI_ADDR", "localhost:8080", "http service endpoint")

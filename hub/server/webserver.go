@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"log"
 	"github.com/gorilla/websocket"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 )
 
 var upgrader = websocket.Upgrader{

@@ -3,7 +3,7 @@ package client
 import (
 	"net/http"
 	"log"
-	"github.com/SchweizerischeBundesbahnen/openshift-monitoring/models"
+	"github.com/oscp/openshift-monitoring/models"
 	"time"
 	"strings"
 	"os/exec"
