@@ -179,13 +179,15 @@ func checkHttp(toCall string) bool {
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		client := &http.Client{Transport: tr}
-		_, err := client.Get(toCall)
+		resp, err := client.Get(toCall)
+		defer resp.Body.Close()
 		if (err != nil) {
 			log.Println("error in http check: ", err)
 		}
 		return err == nil
 	} else {
-		_, err := http.Get(toCall)
+		resp, err := http.Get(toCall)
+		defer resp.Body.Close()
 		if (err != nil) {
 			log.Println("error in http check: ", err)
 		}
