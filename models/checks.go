@@ -10,4 +10,5 @@ type Checks struct {
 	DaemonPublicUrl string
 	EtcdCheck       bool
 	EtcdIps         string
+	EtcdCertPath	string
 }

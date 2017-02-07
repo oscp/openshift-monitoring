@@ -12,6 +12,7 @@ var hubAddr = flag.String("RPC_ADDR", "localhost:2600", "go hub rcp2 address")
 var masterApiUrls = flag.String("MASTER_API_URLS", "https://master1:8443,https://master2:8443", "addresses of master api's")
 var daemonPublicUrl = flag.String("DAEMON_PUBLIC_URL", "http://daemon.yourroute.com", "external address of the daemon service (route)")
 var etcdIps = flag.String("ETCD_IPS", "https://localhost:2379,https://server1:2379", "adresses of etcd servers")
+var etcdCertPath = flag.String("ETCD_CERT_PATH", "/etc/etcd/", "Path of alternative etcd certificates")
 
 func main() {
 	flag.Parse()
@@ -20,9 +21,10 @@ func main() {
 	log.Println("master api urls are ", *masterApiUrls)
 	log.Println("daemons public url is ", *daemonPublicUrl)
 	log.Println("etcd ips are ", *etcdIps)
+	log.Println("etcdCertPath is ", *etcdCertPath)
 
 	// Start hub rcp server
-	hub := server.NewHub(*hubAddr, *masterApiUrls, *daemonPublicUrl, *etcdIps)
+	hub := server.NewHub(*hubAddr, *masterApiUrls, *daemonPublicUrl, *etcdIps, *etcdCertPath)
 	go hub.Serve()
 
 	// Serve UI & websockets

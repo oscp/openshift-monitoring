@@ -38,7 +38,7 @@ func startChecks(dc *models.DaemonClient, checks *models.Checks) {
 					go checkMasterApis(dc, checks.MasterApiUrls)
 				}
 				if (checks.EtcdCheck && dc.Daemon.IsMaster()) {
-					go checkEtcdHealth(dc, checks.EtcdIps)
+					go checkEtcdHealth(dc, checks.EtcdIps, checks.EtcdCertPath)
 				}
 			case <-tickExt:
 				if (checks.DnsCheck) {
@@ -263,30 +263,50 @@ func checkHttpHaProxy(dc *models.DaemonClient, publicUrl string, slow bool) {
 	dc.ToHub <- models.CheckResult{Type: models.HTTP_HAPROXY, IsOk: isOk, Message: msg}
 }
 
-func checkEtcdHealth(dc *models.DaemonClient, etcdIps string) {
+func checkEtcdHealth(dc *models.DaemonClient, etcdIps string, etcdCertPath string) {
 	handleCheckStarted(dc)
 	var msg string
 	isOk := true
 
-	cmd := exec.Command("etcdctl", "--peers", etcdIps, "--ca-file", "/etc/etcd/ca.crt",
-		"--key-file", "/etc/etcd/peer.key", "--cert-file", "/etc/etcd/peer.crt", "cluster-health")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		isOk = false
-		log.Println("error while running etcd health check", err)
-		msg = "etcd health check failed: " + err.Error()
-	}
+	if (len(etcdCertPath) > 0) {
+		// Check etcd with custom certs path
+		isOk = checkEtcdHealthWithCertPath(&msg, etcdCertPath, etcdIps)
 
-	stdOut := out.String()
-	if (!strings.Contains(stdOut, "cluster is healthy")) {
-		isOk = false
-		msg += "Etcd health check was 'cluster unhealthy'"
+		if (!isOk) {
+			log.Println("etcd health check with custom cert path failed, trying with default")
+
+			// Check etcd with default certs path
+			isOk = checkEtcdHealthWithCertPath(&msg, "/etc/etcd/", etcdIps);
+		}
+	} else {
+		// Check etcd with default certs path
+		isOk = checkEtcdHealthWithCertPath(&msg, "/etc/etcd/", etcdIps);
 	}
 
 	handleCheckFinished(dc, isOk)
 
 	// Tell the hub about it
 	dc.ToHub <- models.CheckResult{Type: models.ETCD_HEALTH, IsOk: isOk, Message: msg}
+}
+
+func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) bool {
+	cmd := exec.Command("etcdctl", "--peers", etcdIps, "--ca-file", certPath + "ca.crt",
+		"--key-file", certPath + "peer.key", "--cert-file", certPath + "peer.crt", "cluster-health")
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		log.Println("error while running etcd health check", err)
+		*msg = "etcd health check failed: " + err.Error()
+		return false
+	}
+
+	stdOut := out.String()
+	if (!strings.Contains(stdOut, "cluster is healthy")) {
+		*msg += "Etcd health check was 'cluster unhealthy'"
+		return false
+	}
+
+	return true
 }

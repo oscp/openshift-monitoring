@@ -18,7 +18,9 @@ type Hub struct {
 	toUi          chan models.BaseModel
 }
 
-func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string, etcdIps string) *Hub {
+func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string,
+	etcdIps string, etcdCertPath string) *Hub {
+
 	return &Hub{
 		hubAddr: hubAddr,
 		daemons: make(map[string]*models.DaemonClient),
@@ -35,6 +37,7 @@ func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string, etcdIp
 			DnsCheck:true,
 			EtcdCheck: true,
 			EtcdIps: etcdIps,
+			EtcdCertPath: etcdCertPath,
 			IsRunning:false },
 	}
 }
@@ -89,11 +92,11 @@ func updateUI(h *Hub) {
 		for {
 			select {
 			case <-tick:
-				// Update checkresults
+			// Update checkresults
 				h.toUi <- models.BaseModel{Type: models.CHECK_RESULTS, Message: h.checkResults}
 				h.checkResults = []models.CheckResult{}
 
-				// Update deamons
+			// Update deamons
 				h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
 			}
 		}
