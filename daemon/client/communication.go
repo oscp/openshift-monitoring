@@ -45,10 +45,6 @@ func handleCheckFinished(dc *models.DaemonClient, ok bool) {
 
 func handleChecksStopped(dc *models.DaemonClient) {
 	log.Println("stopped checks")
-
-	dc.Daemon.StartedChecks = 0;
-	dc.Daemon.FailedChecks = 0;
-	dc.Daemon.SuccessfulChecks = 0;
 	updateDaemonOnHub(dc)
 }
 
