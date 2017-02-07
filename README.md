@@ -44,6 +44,8 @@ oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
 # Use the template install/ose-mon-template.yaml
 # Do this for each project a,b,c
 oc project ose-mon-a
+
+# IMAGE_SPEC = If you want to use our image use "oscp/openshift-monitoring:version"
 oc process -f ose-mon-template.yaml -v DAEMON_PUBLIC_ROUTE=xxx,DS_HUB_ADDRESS=xxx,IMAGE_SPEC=xxx | oc create -f -
 ```
 
@@ -70,7 +72,6 @@ mkdir static
 
 # Todo: Copy the UI here
 ```
-
 
 ### Worker nodes
 - Do the same as above, just without the hub
