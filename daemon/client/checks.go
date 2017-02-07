@@ -180,16 +180,18 @@ func checkHttp(toCall string) bool {
 		}
 		client := &http.Client{Transport: tr}
 		resp, err := client.Get(toCall)
-		defer resp.Body.Close()
 		if (err != nil) {
 			log.Println("error in http check: ", err)
+		} else {
+			resp.Body.Close()
 		}
 		return err == nil
 	} else {
 		resp, err := http.Get(toCall)
-		defer resp.Body.Close()
 		if (err != nil) {
 			log.Println("error in http check: ", err)
+		} else {
+			resp.Body.Close()
 		}
 		return err == nil
 	}
