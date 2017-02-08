@@ -10,9 +10,9 @@ install:
 - go get github.com/mitchellh/mapstructure
 - go get github.com/gorilla/websocket
 
-after_success:
+script:
   - mkdir dist
-  - gox -os="linux" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+  - gox -os="linux" -output "./dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
   - ls -la
   - ls -la ./dist/
 
