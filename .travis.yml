@@ -4,7 +4,6 @@ go:
 
 before_install:
   - go get github.com/mitchellh/gox
-  - gox -build-toolchain
 
 install:
 - go get github.com/cenkalti/rpc2
