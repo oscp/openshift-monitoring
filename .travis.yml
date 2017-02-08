@@ -1,14 +1,18 @@
 language: go
 go:
 - 1.7.x
+
+before_install:
+  - go get github.com/mitchellh/gox
+  - gox -build-toolchain
+
 install:
 - go get github.com/cenkalti/rpc2
 - go get github.com/mitchellh/mapstructure
 - go get github.com/gorilla/websocket
-script:
-- go install ./daemon
-- go install ./hub
-- ls -la
+
+after_success:
+  - gox -os="linux" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
 
 deploy:
   provider: releases
