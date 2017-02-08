@@ -18,12 +18,9 @@ script:
   - cd ./ui
   - npm install
   - ng build --prod
-  - cp ./dist/* ../dist/
+  - cp ./dist/* ../dist/static/
   - cd ..
   - tar -zcvf ose-mon.tar.gz ./dist
-  - ls -la
-  - ls -la ./dist/
-  - ls -la ./dist/static/
 
 deploy:
   provider: releases

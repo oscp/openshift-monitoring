@@ -30,7 +30,22 @@ So we test new things (versions/config and so on) in our test environment. As ou
 # Installation
 
 ### Config parameters
-TODO....
+#### Hub
+**NAME**|**DESCRIPTION**|**EXAMPLE**
+-----|-----|-----
+UI\_ADDR|The address & port where the UI should be hosted|10.10.10.1:80
+RPC\_ADDR|The address & port where the hub should be hosted|10.10.10.1:2600
+MASTER\_API\_URLS|Names or IPs of your masters with the API port|https://master1:8443
+DAEMON\_PUBLIC\_URL|Public url of your daemon|http://daemon.yourdefault.route.com
+ETCD\_IPS|Names or IPs where to call your etcd hosts|https://localhost:2379
+ETCD\_CERT\_PATH|Optional config of alternative etcd certificates path. This is used during certificate renew process of OpenShift to do checks with the old certificates. If this fails the default path will be checked as well|/etc/etcd/old/
+
+#### Daemon
+**NAME**|**DESCRIPTION**|**EXAMPLE**
+-----|-----|-----
+HUB\_ADDRESS|Address & port of the hub|localhost:2600
+DAEMON\_TYPE|Type of the daemon out of [MASTER|NODE
+POD\_NAMESPACE|The namespace if the daemon runs inside OpenShift|ose-mon-a
 
 ### OpenShift
 ```bash
@@ -53,7 +68,7 @@ oc process -f ose-mon-template.yaml -v DAEMON_PUBLIC_ROUTE=xxx,DS_HUB_ADDRESS=xx
 ```bash
 mkdir -p /opt/ose-mon
 
-# TODO: Copy hub/daemon & service definition files there
+# Download and unpack from releases or build it yourself (https://github.com/oscp/openshift-monitoring/releases)
 
 chmod +x /opt/ose-mon/hub /opt/ose-mon/daemon
 
@@ -70,7 +85,7 @@ systemctl start ose-mon-daemon.service
 cd /opt/ose-mon
 mkdir static
 
-# Todo: Copy the UI here
+# The UI is included in the download above
 ```
 
 ### Worker nodes
