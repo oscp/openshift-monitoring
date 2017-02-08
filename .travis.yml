@@ -15,8 +15,6 @@ script:
   - gox -osarch="linux/amd64" -output "./dist/{{.OS}}_{{.Arch}}_{{.Dir}}" github.com/oscp/openshift-monitoring/hub github.com/oscp/openshift-monitoring/daemon
   - cp ./install/* ./dist/
   - tar -zcvf ose-mon.tar.gz ./dist
-  - ls -la
-  - ls -la ./dist
 
 deploy:
   provider: releases
