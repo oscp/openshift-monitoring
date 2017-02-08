@@ -20,6 +20,9 @@ script:
   - cp ./dist/* ../dist/
   - cd ..
   - tar -zcvf ose-mon.tar.gz ./dist
+  - ls -la
+  - ls -la ./dist/
+  - ls -la ./dist/static/
 
 deploy:
   provider: releases
