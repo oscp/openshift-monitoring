@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.7.x
+
+install:
+  - go get github.com/cenkalti/rpc2
+  - go get github.com/mitchellh/mapstructure
+  - go get github.com/gorilla/websocket
+
+script:
+  - go install ./daemon
+  - go install ./hub
+
+
