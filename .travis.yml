@@ -12,7 +12,7 @@ install:
 
 script:
   - mkdir dist
-  - gox -os="linux" -output "./dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+  - gox -os="linux" -output "./dist/{{.OS}}_{{.Arch}}_{{.Dir}}" github.com/oscp/openshift-monitoring/hub github.com/oscp/openshift-monitoring/daemon
   - ls -la
   - ls -la ./dist/
 
