@@ -16,12 +16,12 @@ var etcdCertPath = flag.String("ETCD_CERT_PATH", "/etc/etcd/", "Path of alternat
 
 func main() {
 	flag.Parse()
-	log.Println("hub waiting for daemons on ", *hubAddr)
-	log.Println("ui server waiting for websocket on ", *uiAddr)
-	log.Println("master api urls are ", *masterApiUrls)
-	log.Println("daemons public url is ", *daemonPublicUrl)
-	log.Println("etcd ips are ", *etcdIps)
-	log.Println("etcdCertPath is ", *etcdCertPath)
+	log.Println("hub waiting for daemons on", *hubAddr)
+	log.Println("ui server waiting for websocket on", *uiAddr)
+	log.Println("master api urls are", *masterApiUrls)
+	log.Println("daemons public url is", *daemonPublicUrl)
+	log.Println("etcd ips are", *etcdIps)
+	log.Println("etcdCertPath is", *etcdCertPath)
 
 	// Start hub rcp server
 	hub := server.NewHub(*hubAddr, *masterApiUrls, *daemonPublicUrl, *etcdIps, *etcdCertPath)
