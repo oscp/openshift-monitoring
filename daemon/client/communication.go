@@ -29,12 +29,16 @@ func unregisterOnHub(c *rpc2.Client) {
 	c.Close()
 }
 
-func handleCheckStarted(dc *models.DaemonClient) {
+func HandleCheckStarted(dc *models.DaemonClient) {
 	dc.Daemon.StartedChecks++
 	updateDaemonOnHub(dc)
 }
 
-func handleCheckFinished(dc *models.DaemonClient, ok bool) {
+func HandleCheckFinished(dc *models.DaemonClient, ok bool, msg string, t string) {
+	// Tell the ui about the finished check
+	dc.ToHub <- models.CheckResult{Type: t, IsOk: ok, Message: msg}
+
+	// Update check counts
 	if (ok) {
 		dc.Daemon.SuccessfulChecks++
 	} else {
@@ -43,7 +47,7 @@ func handleCheckFinished(dc *models.DaemonClient, ok bool) {
 	updateDaemonOnHub(dc)
 }
 
-func handleChecksStopped(dc *models.DaemonClient) {
+func HandleChecksStopped(dc *models.DaemonClient) {
 	log.Println("stopped checks")
 	updateDaemonOnHub(dc)
 }
@@ -58,7 +62,7 @@ func updateDaemonOnHub(dc *models.DaemonClient) {
 
 func handleCheckResultToHub(dc *models.DaemonClient) {
 	for {
-		var r models.CheckResult = <- dc.ToHub
+		var r models.CheckResult = <-dc.ToHub
 		r.Hostname = dc.Daemon.Hostname
 
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {
