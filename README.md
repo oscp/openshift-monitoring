@@ -49,12 +49,11 @@ DAEMON\_TYPE|Type of the daemon out of [MASTER|NODE
 POD\_NAMESPACE|The namespace if the daemon runs inside a pod in OpenShift|ose-mon-a
 
 ### Standalone mode
-**NAME**|**TYPE**|**DESCRIPTION**|**EXAMPLE**
------|-----|-----
+**NAME**|**DAEMON TYPE**|**DESCRIPTION**|**EXAMPLE**
+-----|-----|-----|-----
 WITH\_HUB|ALL|Disable communication with hub|false
 DAEMON\_TYPE|ALL|Type of the daemon out of [MASTER|NODE
 SERVER\_ADDRESS|ALL|The address & port where the webserver runs|localhost:2600
-
 POD\_NAMESPACE|NODE|The namespace if the daemon runs inside a pod in OpenShift|ose-mon-a
 EXTERNAL\_SYSTEM\_URL|MASTER|URL of an external system to call via http to check external connection|www.google.ch
 HAWCULAR\_SVC\_IP|MASTER|Ip of the hawcular service|10.10.10.1
@@ -62,7 +61,6 @@ ETCD\_IPS|MASTER|Ips of the etcd hosts|192.168.1.1,192.168.1.2,192.168.1.3
 REGISTRY\_SVC\_IP|MASTER|Ip of the registry service|10.10.10.1
 ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
 PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
-
 NFS\_SERVER\_NAME|STORAGE|DNS Name of the nfs server (optional)|nfsserver1.myopenshift.ch
 IS\_GLUSTER\_SERVER|STORAGE|Boolean value of the node is a gluster server|true/false
 
