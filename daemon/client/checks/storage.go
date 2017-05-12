@@ -35,23 +35,6 @@ func CheckOpenFileCount() (bool, string) {
 	return isOk, msg
 }
 
-func CheckNFSHealth(nfsServer string) (bool, string) {
-	isOk := false
-	var msg string
-	out, err := exec.Command("bash", "-c", "showmount -e " + nfsServer).Output()
-	if err != nil {
-		msg = "Could not check nfs mounts: " + err.Error()
-		log.Println(msg)
-		return isOk, msg
-	}
-
-	isOk = !strings.Contains(string(out), "Program not registered")
-	if (!isOk) {
-		msg = "NFS health check failed"
-	}
-	return isOk, msg
-}
-
 func CheckGlusterStatus() (bool, string) {
 	var msg string
 	out, err := exec.Command("bash", "-c", "gstatus -abw -o json").Output()

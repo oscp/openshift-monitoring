@@ -67,16 +67,7 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 	}
 
 	if (daemonType == "STORAGE") {
-		nfsServer := os.Getenv("NFS_SERVER_NAME")
 		isGlusterServer := os.Getenv("IS_GLUSTER_SERVER")
-
-		if (len(nfsServer) > 0) {
-			ok, msg := checks.CheckNFSHealth(nfsServer)
-			responses = append(responses, models.CheckState{
-				State: ok,
-				Message: msg,
-			})
-		}
 
 		if (len(isGlusterServer) > 0) {
 			ok, msg := checks.CheckGlusterStatus()

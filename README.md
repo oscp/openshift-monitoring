@@ -17,7 +17,7 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 ### Daemon-Types
 - NODE = On a Node as systemd-service
 - MASTER = On a master as systemd-service
-- STORAGE = On a nfs or glusterfs server as systemd-service
+- STORAGE = On glusterfs server as systemd-service
 - POD = Runs inside a docker container
 
 # Checks
@@ -61,8 +61,7 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 |         |               | Checks if local master api is healthy                   | 
 |         |               | Checks if logging pods are healthy                      | 
 | STORAGE | /checks/minor | Checks if open-files count is higher than 200'000 files | 
-| STORAGE | /checks/major | Checks if NFS mounts are ok                             | 
-|         |               | Checks if output of gstatus is 'healthy'                | 
+| STORAGE | /checks/major | Checks if output of gstatus is 'healthy'                | 
 
 # Config parameters
 ## Hub
@@ -96,7 +95,6 @@ ETCD\_IPS|MASTER|Ips of the etcd hosts with protocol & port|https://192.168.125.
 REGISTRY\_SVC\_IP|MASTER|Ip of the registry service|10.10.10.1
 ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
 PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
-NFS\_SERVER\_NAME|STORAGE|DNS Name of the nfs server (optional)|nfsserver1.myopenshift.ch
 IS\_GLUSTER\_SERVER|STORAGE|Boolean value of the node is a gluster server|true/false
 
 # Installation
