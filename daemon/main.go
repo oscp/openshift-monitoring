@@ -12,8 +12,13 @@ func main() {
 	daemonType := os.Getenv("DAEMON_TYPE")
 	withHub := os.Getenv("WITH_HUB")
 
-	if (len(withHub) == 0 || len(daemonType) == 0) {
-		log.Fatal("env variables 'WITH_HUB' and 'DAEMON_TYPE' must be specified")
+	if (len(daemonType) == 0) {
+		log.Fatal("env variable 'DAEMON_TYPE' must be specified")
+	}
+
+	// Default is with hub
+	if (len(withHub) == 0) {
+		withHub = "true"
 	}
 
 	// Communication with the hub is optional
