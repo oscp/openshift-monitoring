@@ -30,7 +30,7 @@ func generateResponse(w http.ResponseWriter, responses []models.CheckState) {
 	host, _ := os.Hostname()
 	r := models.CheckResult{
 		Hostname: host,
-		Type: "MINOR",
+		Type: "OSE_CHECKS",
 		IsOk: true,
 	}
 

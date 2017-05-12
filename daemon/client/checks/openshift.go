@@ -193,7 +193,7 @@ func CheckLoggingRestartsCount() (bool, string) {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
 			cnt, _ := strconv.Atoi(l)
 			if (cnt > 2) {
-				msg = "A logging-container has restart count > 2"
+				msg = "A logging-container has restart count bigger than 2 - " + strconv.Itoa(cnt)
 				isOk = false
 			}
 		}
@@ -216,7 +216,7 @@ func CheckRouterRestartCount() (bool, string) {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
 			cnt, _ := strconv.Atoi(l)
 			if (cnt > 5) {
-				msg = "A Router has restart count > 5"
+				msg = "A Router has restart count bigger than 5 - " + strconv.Itoa(cnt)
 				isOk = false
 			}
 		}
@@ -260,7 +260,7 @@ func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) b
 	}
 
 	stdOut := out.String()
-	if (!strings.Contains(stdOut, "cluster is healthy")) {
+	if (strings.Contains(stdOut, "unhealthy") || strings.Contains(stdOut, "unreachable")) {
 		*msg += "Etcd health check was 'cluster unhealthy'"
 		return false
 	}
