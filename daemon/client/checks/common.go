@@ -32,16 +32,15 @@ func CheckExternalSystem(url string) (bool, string) {
 }
 
 func CheckNtpd() (bool, string) {
-	isOk := false
 	var msg string
 	out, err := exec.Command("bash", "-c", "ntpstat").Output()
 	if err != nil {
 		msg = "Could not check ntpd status: " + err.Error()
 		log.Println(msg)
-		return isOk, msg
+		return false, msg
 	}
 
-	isOk = strings.Contains(string(out), "time correct")
+	isOk := strings.Contains(string(out), "time correct")
 	if (!isOk) {
 		msg = "Time is not correct on the server or ntpd not running"
 	}
@@ -85,6 +84,7 @@ func getIpsForName(n string) []net.IP {
 }
 
 func checkHttp(toCall string) bool {
+	log.Println("Checking access to:", toCall)
 	if (strings.HasPrefix(toCall, "https")) {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},

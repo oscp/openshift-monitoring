@@ -37,7 +37,7 @@ func generateResponse(w http.ResponseWriter, responses []models.CheckState) {
 	for _, s := range responses {
 		if (!s.State) {
 			r.IsOk = false
-			r.Message += s.Message
+			r.Message += " | " + s.Message
 		}
 	}
 

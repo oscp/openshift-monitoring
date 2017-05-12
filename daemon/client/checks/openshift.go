@@ -25,17 +25,15 @@ func CheckMasterApis(urls string) (bool, string) {
 }
 
 func CheckOcGetNodes() (bool, string) {
-	isOk := false
 	var msg string
 	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false").Output()
 	if err != nil {
-		isOk = false
-		msg = "Could not parse docker pool size: " + err.Error()
+		msg = "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
-		return isOk, msg
+		return false, msg
 	}
 
-	isOk = strings.Contains(string(out), "NotReady")
+	isOk := !strings.Contains(string(out), "NotReady")
 	if (!isOk) {
 		msg = "Some node is not ready! 'oc get nodes' output contained NotReady"
 	}
@@ -43,7 +41,6 @@ func CheckOcGetNodes() (bool, string) {
 }
 
 func CheckDnsNslookupOnKubernetes() (bool, string) {
-	isOk := false
 	var msg string
 
 	cmd := exec.Command("nslookup", daemonDNSEndpoint, kubernetesIP)
@@ -51,14 +48,14 @@ func CheckDnsNslookupOnKubernetes() (bool, string) {
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		isOk = false
 		log.Println("error with nslookup: ", err)
 		msg = "DNS resolution via nslookup & kubernetes failed." + err.Error()
-		return isOk, msg
+		return false, msg
 	}
 
 	stdOut := out.String()
 
+	isOk := false
 	if (strings.Contains(stdOut, "Server") && strings.Count(stdOut, "Address") >= 2 && strings.Contains(stdOut, "Name")) {
 		isOk = true
 	} else {
@@ -183,19 +180,18 @@ func CheckRouterHealth(ip string) (bool, string) {
 }
 
 func CheckLoggingRestartsCount() (bool, string) {
-	isOk := false
 	var msg string
 	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg = "Could not parse logging container restart count: " + err.Error()
 		log.Println(msg)
-		return isOk, msg
+		return false, msg
 	}
 
-	isOk = true
-	for _,l := range strings.Split(string(out),"\n") {
+	isOk := true
+	for _, l := range strings.Split(string(out), "\n") {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
-			cnt,_ := strconv.Atoi(l)
+			cnt, _ := strconv.Atoi(l)
 			if (cnt > 2) {
 				msg = "A logging-container has restart count > 2"
 				isOk = false
@@ -207,19 +203,18 @@ func CheckLoggingRestartsCount() (bool, string) {
 }
 
 func CheckRouterRestartCount() (bool, string) {
-	isOk := false
 	var msg string
 	out, err := exec.Command("bash", "-c", "oc get po -n default | grep router | grep -v deploy | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg = "Could not parse router restart count: " + err.Error()
 		log.Println(msg)
-		return isOk, msg
+		return false, msg
 	}
 
-	isOk = true
-	for _,l := range strings.Split(string(out),"\n") {
+	isOk := true
+	for _, l := range strings.Split(string(out), "\n") {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
-			cnt,_ := strconv.Atoi(l)
+			cnt, _ := strconv.Atoi(l)
 			if (cnt > 5) {
 				msg = "A Router has restart count > 5"
 				isOk = false
@@ -301,9 +296,11 @@ func CheckLimitsAndQuotas(allowedWithout int) (bool, string) {
 	}
 
 	// Parse them
-	pCount,_ := strconv.Atoi(string(projectCount))
-	lCount,_ := strconv.Atoi(string(limitCount))
-	qCount,_ := strconv.Atoi(string(quotaCount))
+	pCount, err := strconv.Atoi(strings.TrimSpace(string(projectCount)))
+	lCount, _ := strconv.Atoi(strings.TrimSpace(string(limitCount)))
+	qCount, _ := strconv.Atoi(strings.TrimSpace(string(quotaCount)))
+
+	log.Println("Parsed values (projects,limits,quotas)", pCount, lCount, qCount)
 
 	if (pCount - allowedWithout != lCount) {
 		return false, "There are some projects without limits"
