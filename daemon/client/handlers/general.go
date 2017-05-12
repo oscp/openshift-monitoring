@@ -31,6 +31,7 @@ func generateResponse(w http.ResponseWriter, responses []models.CheckState) {
 	r := models.CheckResult{
 		Hostname: host,
 		Type: "MINOR",
+		IsOk: true,
 	}
 
 	for _, s := range responses {

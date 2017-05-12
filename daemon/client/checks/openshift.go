@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"log"
 	"os/exec"
+	"strconv"
 )
 
 func CheckMasterApis(urls string) (bool, string) {
@@ -21,6 +22,24 @@ func CheckMasterApis(urls string) (bool, string) {
 	}
 
 	return oneApiOk, msg
+}
+
+func CheckOcGetNodes() (bool, string) {
+	isOk := false
+	var msg string
+	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false").Output()
+	if err != nil {
+		isOk = false
+		msg = "Could not parse docker pool size: " + err.Error()
+		log.Println(msg)
+		return isOk, msg
+	}
+
+	isOk = strings.Contains(string(out), "NotReady")
+	if (!isOk) {
+		msg = "Some node is not ready! 'oc get nodes' output contained NotReady"
+	}
+	return isOk, msg
 }
 
 func CheckDnsNslookupOnKubernetes() (bool, string) {
@@ -130,6 +149,87 @@ func CheckHttpHaProxy(publicUrl string, slow bool) (bool, string) {
 	return isOk, msg
 }
 
+func CheckRegistryHealth(ip string) (bool, string) {
+	var msg string
+	isOk := checkHttp("http://" + ip + ":5000/healthz")
+
+	if (!isOk) {
+		msg = "Registry health check failed"
+	}
+
+	return isOk, msg
+}
+
+func CheckHawcularHealth(ip string) (bool, string) {
+	var msg string
+	isOk := checkHttp("https://" + ip + ":443")
+
+	if (!isOk) {
+		msg = "Hawcular health check failed"
+	}
+
+	return isOk, msg
+}
+
+func CheckRouterHealth(ip string) (bool, string) {
+	var msg string
+	isOk := checkHttp("http://" + ip + ":1936/healthz")
+
+	if (!isOk) {
+		msg = "Router health check failed:" + ip
+	}
+
+	return isOk, msg
+}
+
+func CheckLoggingRestartsCount() (bool, string) {
+	isOk := false
+	var msg string
+	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
+	if err != nil {
+		msg = "Could not parse logging container restart count: " + err.Error()
+		log.Println(msg)
+		return isOk, msg
+	}
+
+	isOk = true
+	for _,l := range strings.Split(string(out),"\n") {
+		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
+			cnt,_ := strconv.Atoi(l)
+			if (cnt > 2) {
+				msg = "A logging-container has restart count > 2"
+				isOk = false
+			}
+		}
+	}
+
+	return isOk, msg
+}
+
+func CheckRouterRestartCount() (bool, string) {
+	isOk := false
+	var msg string
+	out, err := exec.Command("bash", "-c", "oc get po -n default | grep router | grep -v deploy | tr -s ' ' | cut -d ' ' -f 4").Output()
+	if err != nil {
+		msg = "Could not parse router restart count: " + err.Error()
+		log.Println(msg)
+		return isOk, msg
+	}
+
+	isOk = true
+	for _,l := range strings.Split(string(out),"\n") {
+		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
+			cnt,_ := strconv.Atoi(l)
+			if (cnt > 5) {
+				msg = "A Router has restart count > 5"
+				isOk = false
+			}
+		}
+	}
+
+	return isOk, msg
+}
+
 func CheckEtcdHealth(etcdIps string, etcdCertPath string) (bool, string) {
 	var msg string
 	isOk := true
@@ -171,4 +271,46 @@ func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) b
 	}
 
 	return true
+}
+
+func CheckLimitsAndQuotas(allowedWithout int) (bool, string) {
+	var msg string
+
+	// Count projects
+	projectCount, err := exec.Command("bash", "-c", "oc get projects  | wc -l").Output()
+	if err != nil {
+		msg = "Could not parse project count" + err.Error()
+		log.Println(msg)
+		return false, msg
+	}
+
+	// Count limits
+	limitCount, err := exec.Command("bash", "-c", "oc get limits --all-namespaces | wc -l").Output()
+	if err != nil {
+		msg = "Could not parse limit count" + err.Error()
+		log.Println(msg)
+		return false, msg
+	}
+
+	// Count quotas
+	quotaCount, err := exec.Command("bash", "-c", "oc get quota --all-namespaces | wc -l").Output()
+	if err != nil {
+		msg = "Could not parse quota count" + err.Error()
+		log.Println(msg)
+		return false, msg
+	}
+
+	// Parse them
+	pCount,_ := strconv.Atoi(string(projectCount))
+	lCount,_ := strconv.Atoi(string(limitCount))
+	qCount,_ := strconv.Atoi(string(quotaCount))
+
+	if (pCount - allowedWithout != lCount) {
+		return false, "There are some projects without limits"
+	}
+	if (pCount - allowedWithout != qCount) {
+		return false, "There are some projects without quotas"
+	}
+
+	return true, ""
 }

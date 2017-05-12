@@ -16,11 +16,11 @@ func main() {
 		log.Fatal("env variables 'WITH_HUB' and 'DAEMON_TYPE' must be specified")
 	}
 
-	// Always create the webserver for checks
-	go client.RunWebserver(daemonType)
-
 	// Communication with the hub is optional
 	if (withHub == "true") {
+		// Webserver for /slow /fast checks
+		go client.RunWebserver(daemonType)
+
 		hubAddr := os.Getenv("HUB_ADDRESS")
 		namespace := os.Getenv("POD_NAMESPACE")
 
@@ -44,5 +44,8 @@ func main() {
 			client.StopDaemon(cl)
 			os.Exit(1)
 		}()
+	} else {
+		// Just run the webserver for external monitoring system
+		client.RunWebserver(daemonType)
 	}
 }

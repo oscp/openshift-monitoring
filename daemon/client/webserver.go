@@ -21,6 +21,9 @@ func RunWebserver(daemonType string) {
 	http.HandleFunc("/checks/minor", func(w http.ResponseWriter, r *http.Request) {
 		handlers.HandleMinorChecks(daemonType, w, r)
 	})
+	http.HandleFunc("/checks/major", func(w http.ResponseWriter, r *http.Request) {
+		handlers.HandleMajorChecks(daemonType, w, r)
+	})
 
-	go log.Fatal(http.ListenAndServe(addr, nil))
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
