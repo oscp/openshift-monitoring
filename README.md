@@ -92,7 +92,7 @@ SERVER\_ADDRESS|ALL|The address & port where the webserver runs|localhost:2600
 POD\_NAMESPACE|NODE|The namespace if the daemon runs inside a pod in OpenShift|ose-mon-a
 EXTERNAL\_SYSTEM\_URL|MASTER|URL of an external system to call via http to check external connection|www.google.ch
 HAWCULAR\_SVC\_IP|MASTER|Ip of the hawcular service|10.10.10.1
-ETCD\_IPS|MASTER|Ips of the etcd hosts with protocol & port|https://192.168.125.241:2379,https://192.168.125.244:2379,https://192.168.125.245:2379
+ETCD\_IPS|MASTER|Ips of the etcd hosts with protocol & port|https://192.168.125.241:2379,https://192.168.125.244:2379
 REGISTRY\_SVC\_IP|MASTER|Ip of the registry service|10.10.10.1
 ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
 PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
