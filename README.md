@@ -48,18 +48,22 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 | ALL     | /slow         | Slow endpoint for slow http-ping                        | 
 | NODE    | /checks/minor | Checks if the dockerpool is > 80%                       | 
 |         |               | Checks ntpd synchronization status                      | 
+|         |               | Checks if http access via service is ok       | 
 | NODE    | /checks/major | Checks if the dockerpool is > 90%                       | 
+|         |               | Check if dns is ok via kubernetes & dnsmasq             | 
 | MASTER  | /checks/minor | Checks ntpd synchronization status                      | 
 |         |               | Checks if external system is reachable                  | 
 |         |               | Checks if hawcular is healthy                           | 
 |         |               | Checks if ha-proxy has a high restart count             | 
 |         |               | Checks if all projects have limits & quotas             | 
+|         |               | Checks if http access via service is ok       | 
 | MASTER  | /checks/major | Checks if output of 'oc get nodes' is fine              | 
 |         |               | Checks if etcd cluster is healthy                       | 
 |         |               | Checks if docker registry is healthy                    | 
 |         |               | Checks if all routers are healthy                       | 
 |         |               | Checks if local master api is healthy                   | 
 |         |               | Checks if logging pods are healthy                      | 
+|         |               | Check if dns is ok via kubernetes & dnsmasq             | 
 | STORAGE | /checks/minor | Checks if open-files count is higher than 200'000 files | 
 | STORAGE | /checks/major | Checks if output of gstatus is 'healthy'                | 
 

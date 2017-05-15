@@ -17,6 +17,12 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			State: ok,
 			Message: msg,
 		})
+
+		ok, msg = checks.CheckHttpService(true)
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
 	}
 
 	if (daemonType == "MASTER") {
@@ -51,6 +57,12 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		})
 
 		ok, msg = checks.CheckLimitsAndQuotas(allowedWithoutInt)
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
+
+		ok, msg = checks.CheckHttpService(true)
 		responses = append(responses, models.CheckState{
 			State: ok,
 			Message: msg,

@@ -17,6 +17,18 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			State: ok,
 			Message: msg,
 		})
+
+		ok, msg = checks.CheckDnsNslookupOnKubernetes()
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
+
+		ok, msg = checks.CheckDnsServiceNode()
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
 	}
 
 	if (daemonType == "MASTER") {
@@ -60,6 +72,18 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		})
 
 		ok, msg = checks.CheckLoggingRestartsCount()
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
+
+		ok, msg = checks.CheckDnsNslookupOnKubernetes()
+		responses = append(responses, models.CheckState{
+			State: ok,
+			Message: msg,
+		})
+
+		ok, msg = checks.CheckDnsServiceNode()
 		responses = append(responses, models.CheckState{
 			State: ok,
 			Message: msg,
