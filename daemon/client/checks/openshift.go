@@ -59,7 +59,7 @@ func CheckDnsNslookupOnKubernetes() (bool, string) {
 	if (strings.Contains(stdOut, "Server") && strings.Count(stdOut, "Address") >= 2 && strings.Contains(stdOut, "Name")) {
 		isOk = true
 	} else {
-		msg += "NsLookup had wrong output"
+		msg += "Problem with dns to kubernetes. nsLookup had wrong output"
 	}
 
 	return isOk, msg

@@ -18,7 +18,7 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			Message: msg,
 		})
 
-		ok, msg = checks.CheckHttpService(true)
+		ok, msg = checks.CheckHttpService(false)
 		responses = append(responses, models.CheckState{
 			State: ok,
 			Message: msg,
@@ -62,7 +62,7 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			Message: msg,
 		})
 
-		ok, msg = checks.CheckHttpService(true)
+		ok, msg = checks.CheckHttpService(false)
 		responses = append(responses, models.CheckState{
 			State: ok,
 			Message: msg,

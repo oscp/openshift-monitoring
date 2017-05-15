@@ -115,8 +115,11 @@ oc adm pod-network join-projects --to=ose-mon-a ose-mon-c
 # Do this for each project a,b,c
 oc project ose-mon-a
 
-# IMAGE_SPEC = If you want to use our image use "oscp/openshift-monitoring:version"
+# HUB-Mode: IMAGE_SPEC = If you want to use our image use "oscp/openshift-monitoring:version"
 oc process -f ose-mon-template.yaml -v DAEMON_PUBLIC_ROUTE=xxx,DS_HUB_ADDRESS=xxx,IMAGE_SPEC=xxx | oc create -f -
+
+# Standalone-Mode:
+oc process -f ose-mon-standalone-template.yaml -v DAEMON_PUBLIC_ROUTE=daemon-ose-mon-b.your-route.com IMAGE_SPEC=oscp/openshift-monitoring:xxxx | oc create -f -
 ```
 
 ### Master nodes
