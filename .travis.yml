@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.7.x
+- 1.8.x
 
 before_install:
   - go get github.com/mitchellh/gox
@@ -17,10 +17,11 @@ script:
   - gox -osarch="linux/amd64" -output "./dist/{{.Dir}}" github.com/oscp/openshift-monitoring/hub github.com/oscp/openshift-monitoring/daemon
   - cd ./ui
   - npm install
-  - ng build --prod
+  - npm run build-prod
   - cp ./dist/* ../dist/static/
   - cd ..
-  - tar -zcvf ose-mon.tar.gz ./dist
+  - tar -zcvf ose-mon.tar.gz dist
+  - tar -zcvf ose-mon-daemon-standalone.tar.gz dist/daemon dist/ose-mon-daemon.service.standalone
 
 deploy:
   provider: releases
@@ -28,6 +29,7 @@ deploy:
     secure: fk1WqHNOZm5cCXRQZ1wleFxP7lORnuZ5xqJLjyJmaw+APX25c3XL1ASiv004Ied7fNTqCzjLJMfntuDK4y/zkyE26p6p/7GvRYq+j6ejSA3w60UqzYPckA5kp21T2Kb2eED2LXJ1TaTlnJxCP+vXpHQUYeqZ45i5Dimq1TlIUOlBmBKQCCOucNB52RA62+919W1fB0hjKH1X9YSpO/uwf/BCbqWKzGLNz6zHE9+wIzRgAEpTgccEIkXOoxoNWGWv9Gbbe8t206qND+mscogiK3bDhJjoAW4SaQe2ZHf0H9cNN3f0S5FaAMZLEfVz6d7rDAsyTnSgEyPCRP0i9HjQMRwkPiXvtcZBfKS0C6rpbQVw+vhWL2AvPXUhHKVS2+g82+qQ+eOUqA3MOPPAMcMesNWuNSzE6sb6EZ6Z9bzL+FFAq1nZZkj/zGlsbhFxiCOVXWpUuHNnMJFZdcpnQrwLgQfcXbMBuiQkS/6oKGiPeiCb2FgfOAqGdDjBW4vyQeja36QNMA4qN2rh6agunKqTyZTEoJFH6FLA5yT2hAJQM4WiTU4WPP4yiz6lsQShhkF8IdQtv+6ST8Y+bJJttI22LLl2ka4f+JnPmMUsMbBOu2KhTj8v2eTPQNrvsf+5VckRgNDQM8K11FUyvGhX/aSFWGGWl7VyD7HjgGMEaR91UhE=
   file:
   - "ose-mon.tar.gz"
+  - "ose-mon-daemon-standalone.tar.gz"
   skip_cleanup: true
   on:
     tags: true

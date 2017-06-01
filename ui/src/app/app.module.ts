@@ -9,6 +9,7 @@ import {DaemonsComponent} from './daemons/daemons.component';
 import { ChecksComponent } from './checks/checks.component';
 import { ResultsComponent } from './results/results.component';
 import {ChartsModule} from "ng2-charts";
+import {NotificationsService} from "angular2-notifications/dist";
 
 @NgModule({
   declarations: [
@@ -24,7 +25,7 @@ import {ChartsModule} from "ng2-charts";
     SimpleNotificationsModule,
     ChartsModule
   ],
-  providers: [SocketService],
+  providers: [SocketService, NotificationsService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
