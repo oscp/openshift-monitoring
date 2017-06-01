@@ -19,8 +19,9 @@ script:
   - npm install
   - npm run build-prod
   - cp ./dist/* ../dist/static/
-  - tar -zcvf ose-mon.tar.gz .
-  - tar -zcvf ose-mon-daemon-standalone.tar.gz daemon ose-mon-daemon.service.standalone
+  - cd ..
+  - tar -zcvf ose-mon.tar.gz dist
+  - tar -zcvf ose-mon-daemon-standalone.tar.gz dist/daemon dist/ose-mon-daemon.service.standalone
 
 deploy:
   provider: releases

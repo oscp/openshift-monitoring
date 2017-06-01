@@ -133,11 +133,14 @@ mkdir -p /opt/ose-mon
 chmod +x /opt/ose-mon/hub /opt/ose-mon/daemon
 
 # Add your params to the service definition files
-ln -s /opt/ose-mon/ose-mon-hub.service  /etc/systemd/system/ose-mon-hub.service
-ln -s /opt/ose-mon/ose-mon-daemon.service  /etc/systemd/system/ose-mon-daemon.service
+cp /opt/ose-mon/ose-mon-hub.service  /etc/systemd/system/ose-mon-hub.service
+cp /opt/ose-mon/ose-mon-daemon.service  /etc/systemd/system/ose-mon-daemon.service
 
 systemctl start ose-mon-hub.service
+systemctl enable ose-mon-hub.service
+
 systemctl start ose-mon-daemon.service
+systemctl enable ose-mon-daemon.service
 ```
 
 ### Install the UI
