@@ -65,7 +65,9 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 |         |               | Checks if logging pods are healthy                      | 
 |         |               | Check if dns is ok via kubernetes & dnsmasq             | 
 | STORAGE | /checks/minor | Checks if open-files count is higher than 200'000 files | 
+|         |               | Checks every lvs-pool size. Is the value above 80%?     | 
 | STORAGE | /checks/major | Checks if output of gstatus is 'healthy'                | 
+|         |               | Checks every lvs-pool size. Is the value above 90%?     | 
 
 # Config parameters
 ## Hub

@@ -61,3 +61,27 @@ func CheckGlusterStatus() (bool, string) {
 
 	return true, ""
 }
+
+func CheckLVMPoolSizes(okSize int) (bool, string) {
+	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep pool").Output()
+	if err != nil {
+		msg := "Could not parse LVM pool size: " + err.Error()
+		log.Println(msg)
+		return false, msg
+	}
+
+	lines := strings.Split(string(out), "\n")
+	for _, l := range lines {
+		if (len(l) > 0) {
+			isOk := isLvsSizeOk(l, okSize)
+
+			log.Println("Checking LVM Pool: ", l)
+
+			if (!isOk) {
+				return false, "LVM pool size is above: " + strconv.Itoa(okSize) + " | " + l
+			}
+		}
+	}
+
+	return true, ""
+}

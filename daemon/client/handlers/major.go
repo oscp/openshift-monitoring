@@ -93,8 +93,14 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 	if (daemonType == "STORAGE") {
 		isGlusterServer := os.Getenv("IS_GLUSTER_SERVER")
 
-		if (len(isGlusterServer) > 0) {
+		if (isGlusterServer == "true") {
 			ok, msg := checks.CheckGlusterStatus()
+			responses = append(responses, models.CheckState{
+				State: ok,
+				Message: msg,
+			})
+
+			ok, msg = checks.CheckLVMPoolSizes(90)
 			responses = append(responses, models.CheckState{
 				State: ok,
 				Message: msg,
