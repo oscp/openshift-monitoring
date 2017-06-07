@@ -4,6 +4,9 @@ So we test new things (versions/config and so on) in our test environment. As ou
 
 Furthermore the daemon now also has a standalone mode. It runs checks based on a http call. So you can monitor all those things from an external monitoring system.
 
+# Screenshot
+![Image of the UI](https://raw.githubusercontent.com/oscp/openshift-monitoring/img/screenshot.png)
+
 # Components
 - UI: The UI to controll everything
 - Hub: The backend of the UI and the daemons
