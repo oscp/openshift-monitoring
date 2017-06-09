@@ -3,26 +3,21 @@ package handlers
 import (
 	"net/http"
 	"github.com/oscp/openshift-monitoring/daemon/client/checks"
-	"github.com/oscp/openshift-monitoring/models"
 	"os"
 	"log"
 	"strconv"
 )
 
 func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
-	responses := []models.CheckState{}
+	errors := []string{}
 	if (daemonType == "NODE") {
-		ok, msg := checks.CheckDockerPool(80)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckDockerPool(80); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckHttpService(false)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckHttpService(false); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
 	if (daemonType == "MASTER") {
@@ -38,56 +33,40 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			log.Fatal("allowedWithout seems not to be an integer", allowedWithout)
 		}
 
-		ok, msg := checks.CheckExternalSystem(externalSystem)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckExternalSystem(externalSystem); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckHawcularHealth(hawcularIp)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckHawcularHealth(hawcularIp); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckRouterRestartCount()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckRouterRestartCount(); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckLimitsAndQuotas(allowedWithoutInt)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckLimitsAndQuotas(allowedWithoutInt); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckHttpService(false)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckHttpService(false); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
 	if (daemonType == "STORAGE") {
-		ok, msg := checks.CheckOpenFileCount()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckOpenFileCount(); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckLVMPoolSizes(80)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckLVMPoolSizes(80); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
-	ok, msg := checks.CheckNtpd()
-	responses = append(responses, models.CheckState{
-		State: ok,
-		Message: msg,
-	})
+	if err := checks.CheckNtpd(); err != nil {
+		errors = append(errors, err.Error())
+	}
 
-	generateResponse(w, responses)
+	generateResponse(w, errors)
 }

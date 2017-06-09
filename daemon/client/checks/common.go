@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"errors"
 )
 
 const (
@@ -21,31 +22,29 @@ const (
 )
 
 
-func CheckExternalSystem(url string) (bool, string) {
-	isOk := checkHttp(url)
-
-	var msg string
-	if (!isOk) {
-		msg = "Call to " + url + " failed"
+func CheckExternalSystem(url string) (error) {
+	if err := checkHttp(url); err != nil {
+		msg := "Call to " + url + " failed"
+		log.Println(msg)
+		return errors.New(msg)
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckNtpd() (bool, string) {
-	var msg string
+func CheckNtpd() (error) {
 	out, err := exec.Command("bash", "-c", "ntpstat").Output()
 	if err != nil {
-		msg = "Could not check ntpd status: " + err.Error()
+		msg := "Could not check ntpd status: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
-	isOk := strings.Contains(string(out), "time correct")
-	if (!isOk) {
-		msg = "Time is not correct on the server or ntpd not running"
+	if strings.Contains(string(out), "time correct") {
+		return nil
+	} else {
+		return errors.New("Time is not correct on the server or ntpd is not running")
 	}
-	return isOk, msg
 }
 
 func getIpsForName(n string) []net.IP {
@@ -57,7 +56,7 @@ func getIpsForName(n string) []net.IP {
 	return ips
 }
 
-func checkHttp(toCall string) bool {
+func checkHttp(toCall string) error {
 	log.Println("Checking access to:", toCall)
 	if (strings.HasPrefix(toCall, "https")) {
 		tr := &http.Transport{
@@ -67,18 +66,20 @@ func checkHttp(toCall string) bool {
 		resp, err := client.Get(toCall)
 		if (err != nil) {
 			log.Println("error in http check: ", err)
+			return err
 		} else {
 			resp.Body.Close()
+			return nil
 		}
-		return err == nil
 	} else {
 		resp, err := http.Get(toCall)
 		if (err != nil) {
 			log.Println("error in http check: ", err)
+			return err
 		} else {
 			resp.Body.Close()
+			return nil
 		}
-		return err == nil
 	}
 }
 

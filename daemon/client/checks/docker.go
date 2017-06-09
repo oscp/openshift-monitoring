@@ -4,20 +4,21 @@ import (
 	"os/exec"
 	"log"
 	"strconv"
+	"errors"
+	"fmt"
 )
 
-func CheckDockerPool(okSize int) (bool, string) {
-	var msg string
+func CheckDockerPool(okSize int) (error) {
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep docker-pool").Output()
 	if err != nil {
-		msg = "Could not parse docker pool size: " + err.Error()
+		msg := "Could not parse docker pool size: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	isOk := isLvsSizeOk(string(out), okSize)
 	if (!isOk) {
-		msg = "Docker pool size is above: " + strconv.Itoa(okSize)
+		return fmt.Errorf("Docker pool size is above: %v", strconv.Itoa(okSize))
 	}
-	return isOk, msg
+	return nil
 }

@@ -34,14 +34,13 @@ func HandleCheckStarted(dc *models.DaemonClient) {
 	updateDaemonOnHub(dc)
 }
 
-func HandleCheckFinished(dc *models.DaemonClient, ok bool, msg string, t string) {
-	// Tell the ui about the finished check
-	dc.ToHub <- models.CheckResult{Type: t, IsOk: ok, Message: msg}
-
+func HandleCheckFinished(dc *models.DaemonClient, err error, t string) {
 	// Update check counts
-	if (ok) {
+	if (err == nil) {
+		dc.ToHub <- models.CheckResult{Type: t, IsOk: true, Message: ""}
 		dc.Daemon.SuccessfulChecks++
 	} else {
+		dc.ToHub <- models.CheckResult{Type: t, IsOk: false, Message: err.Error()}
 		dc.Daemon.FailedChecks++
 	}
 	updateDaemonOnHub(dc)

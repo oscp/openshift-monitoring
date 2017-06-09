@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"github.com/oscp/openshift-monitoring/models"
 	"github.com/oscp/openshift-monitoring/daemon/client/checks"
 	"os"
 	"log"
@@ -10,25 +9,19 @@ import (
 )
 
 func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
-	responses := []models.CheckState{}
+	errors := []string{}
 	if (daemonType == "NODE") {
-		ok, msg := checks.CheckDockerPool(90)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckDockerPool(90); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckDnsNslookupOnKubernetes()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckDnsNslookupOnKubernetes(); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckDnsServiceNode()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckDnsServiceNode(); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
 	if (daemonType == "MASTER") {
@@ -39,74 +32,54 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			log.Fatal("env variables 'ETCD_IPS', 'REGISTRY_SVC_IP', 'ROUTER_IPS' must be specified on type 'MASTER'")
 		}
 
-		ok, msg := checks.CheckOcGetNodes()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
-
-		ok, msg = checks.CheckEtcdHealth(etcdIps, "")
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
-
-		ok, msg = checks.CheckRegistryHealth(registryIp)
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
-
-		for _, rip := range strings.Split(routerIps, ",") {
-			ok, msg = checks.CheckRouterHealth(rip)
-			responses = append(responses, models.CheckState{
-				State: ok,
-				Message: msg,
-			})
+		if err := checks.CheckOcGetNodes(); err != nil {
+			errors = append(errors, err.Error())
 		}
 
-		ok, msg = checks.CheckMasterApis("https://localhost:8443/api")
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckEtcdHealth(etcdIps, ""); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckLoggingRestartsCount()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckRegistryHealth(registryIp); err != nil {
+			errors = append(errors, err.Error())
+		}
 
-		ok, msg = checks.CheckDnsNslookupOnKubernetes()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		for _, rip := range strings.Split(routerIps, ",") {
+			if err := checks.CheckRouterHealth(rip); err != nil {
+				errors = append(errors, err.Error())
+			}
+		}
 
-		ok, msg = checks.CheckDnsServiceNode()
-		responses = append(responses, models.CheckState{
-			State: ok,
-			Message: msg,
-		})
+		if err := checks.CheckMasterApis("https://localhost:8443/api"); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckLoggingRestartsCount(); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckDnsNslookupOnKubernetes(); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckDnsServiceNode(); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
 	if (daemonType == "STORAGE") {
 		isGlusterServer := os.Getenv("IS_GLUSTER_SERVER")
 
 		if (isGlusterServer == "true") {
-			ok, msg := checks.CheckGlusterStatus()
-			responses = append(responses, models.CheckState{
-				State: ok,
-				Message: msg,
-			})
+			if err := checks.CheckGlusterStatus(); err != nil {
+				errors = append(errors, err.Error())
+			}
 
-			ok, msg = checks.CheckLVMPoolSizes(90)
-			responses = append(responses, models.CheckState{
-				State: ok,
-				Message: msg,
-			})
+			if err := checks.CheckLVMPoolSizes(90); err != nil {
+				errors = append(errors, err.Error())
+			}
 		}
 	}
 
-	generateResponse(w, responses)
+	generateResponse(w, errors)
 }

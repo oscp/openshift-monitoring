@@ -26,7 +26,7 @@ func random(min, max int) int {
 	return rand.Intn(max - min) + min
 }
 
-func generateResponse(w http.ResponseWriter, responses []models.CheckState) {
+func generateResponse(w http.ResponseWriter, errors []string) {
 	host, _ := os.Hostname()
 	r := models.CheckResult{
 		Hostname: host,
@@ -34,11 +34,9 @@ func generateResponse(w http.ResponseWriter, responses []models.CheckState) {
 		IsOk: true,
 	}
 
-	for _, s := range responses {
-		if (!s.State) {
-			r.IsOk = false
-			r.Message += " | " + s.Message
-		}
+	for _, s := range errors {
+		r.IsOk = false
+		r.Message += " | " + s
 	}
 
 	json, err := json.Marshal(r)

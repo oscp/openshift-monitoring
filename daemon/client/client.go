@@ -68,38 +68,38 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 				if (checkConfig.MasterApiCheck) {
 					go func() {
 						HandleCheckStarted(dc)
-						isOk, msg := checks.CheckMasterApis(checkConfig.MasterApiUrls)
-						HandleCheckFinished(dc, isOk, msg, models.MASTER_API_CHECK)
+						err := checks.CheckMasterApis(checkConfig.MasterApiUrls)
+						HandleCheckFinished(dc, err, models.MASTER_API_CHECK)
 					}()
 				}
 				if (checkConfig.EtcdCheck && dc.Daemon.IsMaster()) {
 					go func() {
 						HandleCheckStarted(dc)
-						isOk, msg := checks.CheckEtcdHealth(checkConfig.EtcdIps, checkConfig.EtcdCertPath)
-						HandleCheckFinished(dc, isOk, msg, models.ETCD_HEALTH)
+						err := checks.CheckEtcdHealth(checkConfig.EtcdIps, checkConfig.EtcdCertPath)
+						HandleCheckFinished(dc, err, models.ETCD_HEALTH)
 					}()
 				}
 			case <-tickExt:
 				if (checkConfig.DnsCheck) {
 					go func() {
 						HandleCheckStarted(dc)
-						isOk, msg := checks.CheckDnsNslookupOnKubernetes()
-						HandleCheckFinished(dc, isOk, msg, models.DNS_NSLOOKUP_KUBERNETES)
+						err := checks.CheckDnsNslookupOnKubernetes()
+						HandleCheckFinished(dc, err, models.DNS_NSLOOKUP_KUBERNETES)
 					}()
 
 					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckDnsServiceNode()
-							HandleCheckFinished(dc, isOk, msg, models.DNS_SERVICE_NODE)
+							err := checks.CheckDnsServiceNode()
+							HandleCheckFinished(dc, err, models.DNS_SERVICE_NODE)
 						}()
 					}
 
 					if (dc.Daemon.IsPod()) {
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckDnsInPod()
-							HandleCheckFinished(dc, isOk, msg, models.DNS_SERVICE_POD)
+							err := checks.CheckDnsInPod()
+							HandleCheckFinished(dc, err, models.DNS_SERVICE_POD)
 						}()
 					}
 				}
@@ -108,44 +108,44 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 					if (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a")) {
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckPodHttpAtoB()
-							HandleCheckFinished(dc, isOk, msg, models.HTTP_POD_SERVICE_A_B)
+							err := checks.CheckPodHttpAtoB()
+							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_B)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckPodHttpAtoC(false)
-							HandleCheckFinished(dc, isOk, msg, models.HTTP_POD_SERVICE_A_C)
+							err := checks.CheckPodHttpAtoC(false)
+							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_C)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckPodHttpAtoC(true)
-							HandleCheckFinished(dc, isOk, msg, models.HTTP_POD_SERVICE_A_C)
+							err := checks.CheckPodHttpAtoC(true)
+							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_C)
 						}()
 					}
 
 					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckHttpService(false)
-							HandleCheckFinished(dc, isOk, msg, models.HTTP_SERVICE_ABC)
+							err := checks.CheckHttpService(false)
+							HandleCheckFinished(dc, err, models.HTTP_SERVICE_ABC)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
-							isOk, msg := checks.CheckHttpService(true)
-							HandleCheckFinished(dc, isOk, msg, models.HTTP_SERVICE_ABC)
+							err := checks.CheckHttpService(true)
+							HandleCheckFinished(dc, err, models.HTTP_SERVICE_ABC)
 						}()
 					}
 
 					go func() {
 						HandleCheckStarted(dc)
-						isOk, msg := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, false)
-						HandleCheckFinished(dc, isOk, msg, models.HTTP_HAPROXY)
+						err := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, false)
+						HandleCheckFinished(dc, err, models.HTTP_HAPROXY)
 					}()
 
 					go func() {
 						HandleCheckStarted(dc)
-						isOk, msg := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, true)
-						HandleCheckFinished(dc, isOk, msg, models.HTTP_HAPROXY)
+						err := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, true)
+						HandleCheckFinished(dc, err, models.HTTP_HAPROXY)
 					}()
 				}
 			}

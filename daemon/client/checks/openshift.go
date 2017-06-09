@@ -6,189 +6,158 @@ import (
 	"log"
 	"os/exec"
 	"strconv"
+	"errors"
+	"fmt"
 )
 
-func CheckMasterApis(urls string) (bool, string) {
+func CheckMasterApis(urls string) (error) {
 	urlArr := strings.Split(urls, ",")
 
 	oneApiOk := false
 	var msg string
 	for _, u := range urlArr {
-		if (checkHttp(u)) {
+		if err := checkHttp(u); err == nil {
 			oneApiOk = true
 		} else {
 			msg += u + " is not reachable. ";
 		}
 	}
 
-	return oneApiOk, msg
+	if (oneApiOk) {
+		return nil
+	} else {
+		return errors.New(msg)
+	}
 }
 
-func CheckOcGetNodes() (bool, string) {
-	var msg string
+func CheckOcGetNodes() (error) {
 	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false").Output()
 	if err != nil {
-		msg = "Could not parse oc get nodes output: " + err.Error()
+		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
-	isOk := !strings.Contains(string(out), "NotReady")
-	if (!isOk) {
-		msg = "Some node is not ready! 'oc get nodes' output contained NotReady"
+	if (strings.Contains(string(out), "NotReady")) {
+		return errors.New("Some node is not ready! 'oc get nodes' output contained NotReady")
+	} else {
+		return nil
 	}
-	return isOk, msg
 }
 
-func CheckDnsNslookupOnKubernetes() (bool, string) {
-	var msg string
-
+func CheckDnsNslookupOnKubernetes() (error) {
 	cmd := exec.Command("nslookup", daemonDNSEndpoint, kubernetesIP)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
-		log.Println("error with nslookup: ", err)
-		msg = "DNS resolution via nslookup & kubernetes failed." + err.Error()
-		return false, msg
+		msg := "DNS resolution via nslookup & kubernetes failed." + err.Error()
+		log.Println(msg)
+		return errors.New(msg)
 	}
 
 	stdOut := out.String()
 
-	isOk := false
 	if (strings.Contains(stdOut, "Server") && strings.Count(stdOut, "Address") >= 2 && strings.Contains(stdOut, "Name")) {
-		isOk = true
+		return nil
 	} else {
-		msg += "Problem with dns to kubernetes. nsLookup had wrong output"
+		return errors.New("Problem with dns to kubernetes. nsLookup had wrong output")
 	}
-
-	return isOk, msg
 }
 
-func CheckDnsServiceNode() (bool, string) {
-	isOk := false
-	var msg string
-
+func CheckDnsServiceNode() (error) {
 	ips := getIpsForName(daemonDNSServiceA)
 
 	if (ips == nil) {
-		msg = "Failed to lookup ip on node (dnsmasq) for name " + daemonDNSServiceA
+		return errors.New("Failed to lookup ip on node (dnsmasq) for name " + daemonDNSServiceA)
 	} else {
-		isOk = true
+		return nil
 	}
-
-	return isOk, msg
 }
 
-func CheckDnsInPod() (bool, string) {
-	isOk := false
-	var msg string
-
+func CheckDnsInPod() (error) {
 	ips := getIpsForName(daemonDNSPod)
 
 	if (ips == nil) {
-		msg = "Failed to lookup ip in pod for name " + daemonDNSPod
+		return errors.New("Failed to lookup ip in pod for name " + daemonDNSPod)
 	} else {
-		isOk = true
+		return nil
 	}
-
-	return isOk, msg
 }
 
-func CheckPodHttpAtoB() (bool, string) {
+func CheckPodHttpAtoB() (error) {
 	// This should fail as we do not have access to this project
-	isOk := !checkHttp("http://" + daemonDNSServiceB + ":8090/hello")
-
-	var msg string
-	if (!isOk) {
-		msg = "Pod A could access pod b. This should not be allowed!"
+	if err := checkHttp("http://" + daemonDNSServiceB + ":8090/hello"); err == nil {
+		errors.New("Pod A could access pod b. This should not be allowed!")
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckPodHttpAtoC(slow bool) (bool, string) {
-	var msg string
-	isOk := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow))
-
-	if (!isOk) {
-		msg = "Pod A could access pod c. Route/Router problem?"
+func CheckPodHttpAtoC(slow bool) (error) {
+	if err := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow)); err != nil {
+		return errors.New("Pod A could access pod C. This should not work. Route/Router problem?")
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckHttpService(slow bool) (bool, string) {
-	var msg string
+func CheckHttpService(slow bool) (error) {
+	errA := checkHttp("http://" + daemonDNSServiceA + ":8090/" + getEndpoint(slow))
+	errB := checkHttp("http://" + daemonDNSServiceB + ":8090/" + getEndpoint(slow))
+	errC := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow))
 
-	isOkA := checkHttp("http://" + daemonDNSServiceA + ":8090/" + getEndpoint(slow))
-	isOkB := checkHttp("http://" + daemonDNSServiceB + ":8090/" + getEndpoint(slow))
-	isOkC := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow))
-
-	isOk := true
-	if (!isOkA || !isOkB || !isOkC) {
-		msg = "Could not reach one of the services (a/b/c)"
-		isOk = false
+	if (errA != nil || errB != nil || errC != nil) {
+		msg := "Could not reach one of the services (a/b/c)"
+		log.Println(msg)
+		return errors.New(msg)
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckHttpHaProxy(publicUrl string, slow bool) (bool, string) {
-	var msg string
-
-	isOk := checkHttp(publicUrl + ":80/" + getEndpoint(slow))
-
-	if (!isOk) {
-		msg = "Could not access pods via haproxy. Route/Router problem?"
+func CheckHttpHaProxy(publicUrl string, slow bool) (error) {
+	if err := checkHttp(publicUrl + ":80/" + getEndpoint(slow)); err != nil {
+		return errors.New("Could not access pods via haproxy. Route/Router problem?")
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckRegistryHealth(ip string) (bool, string) {
-	var msg string
-	isOk := checkHttp("http://" + ip + ":5000/healthz")
-
-	if (!isOk) {
-		msg = "Registry health check failed"
+func CheckRegistryHealth(ip string) (error) {
+	if err := checkHttp("http://" + ip + ":5000/healthz"); err != nil {
+		return fmt.Errorf("Registry health check failed. %v", err.Error())
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckHawcularHealth(ip string) (bool, string) {
-	var msg string
-	isOk := checkHttp("https://" + ip + ":443")
-
-	if (!isOk) {
-		msg = "Hawcular health check failed"
+func CheckHawcularHealth(ip string) (error) {
+	if err := checkHttp("https://" + ip + ":443"); err != nil {
+		return errors.New("Hawcular health check failed")
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckRouterHealth(ip string) (bool, string) {
-	var msg string
-	isOk := checkHttp("http://" + ip + ":1936/healthz")
-
-	if (!isOk) {
-		msg = "Router health check failed:" + ip
+func CheckRouterHealth(ip string) (error) {
+	if err := checkHttp("http://" + ip + ":1936/healthz"); err != nil {
+		return fmt.Errorf("Router health check failed for %v, %v", ip, err.Error())
 	}
 
-	return isOk, msg
+	return nil
 }
 
-func CheckLoggingRestartsCount() (bool, string) {
-	var msg string
+func CheckLoggingRestartsCount() (error) {
 	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
-		msg = "Could not parse logging container restart count: " + err.Error()
+		msg := "Could not parse logging container restart count: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	isOk := true
+	var msg string
 	for _, l := range strings.Split(string(out), "\n") {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
 			cnt, _ := strconv.Atoi(l)
@@ -199,19 +168,23 @@ func CheckLoggingRestartsCount() (bool, string) {
 		}
 	}
 
-	return isOk, msg
+	if (!isOk) {
+		return errors.New(msg)
+	} else {
+		return nil
+	}
 }
 
-func CheckRouterRestartCount() (bool, string) {
-	var msg string
+func CheckRouterRestartCount() (error) {
 	out, err := exec.Command("bash", "-c", "oc get po -n default | grep router | grep -v deploy | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
-		msg = "Could not parse router restart count: " + err.Error()
+		msg := "Could not parse router restart count: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	isOk := true
+	var msg string
 	for _, l := range strings.Split(string(out), "\n") {
 		if (!strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0) {
 			cnt, _ := strconv.Atoi(l)
@@ -222,10 +195,14 @@ func CheckRouterRestartCount() (bool, string) {
 		}
 	}
 
-	return isOk, msg
+	if (isOk) {
+		return nil
+	} else {
+		return errors.New(msg)
+	}
 }
 
-func CheckEtcdHealth(etcdIps string, etcdCertPath string) (bool, string) {
+func CheckEtcdHealth(etcdIps string, etcdCertPath string) (error) {
 	var msg string
 	isOk := true
 
@@ -243,7 +220,12 @@ func CheckEtcdHealth(etcdIps string, etcdCertPath string) (bool, string) {
 		// Check etcd with default certs path
 		isOk = checkEtcdHealthWithCertPath(&msg, "/etc/etcd/", etcdIps);
 	}
-	return isOk, msg
+
+	if (!isOk) {
+		return errors.New(msg)
+	} else {
+		return nil
+	}
 }
 
 func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) bool {
@@ -268,31 +250,29 @@ func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) b
 	return true
 }
 
-func CheckLimitsAndQuotas(allowedWithout int) (bool, string) {
-	var msg string
-
+func CheckLimitsAndQuotas(allowedWithout int) (error) {
 	// Count projects
 	projectCount, err := exec.Command("bash", "-c", "oc get projects  | wc -l").Output()
 	if err != nil {
-		msg = "Could not parse project count" + err.Error()
+		msg := "Could not parse project count" + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	// Count limits
 	limitCount, err := exec.Command("bash", "-c", "oc get limits --all-namespaces | wc -l").Output()
 	if err != nil {
-		msg = "Could not parse limit count" + err.Error()
+		msg := "Could not parse limit count" + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	// Count quotas
 	quotaCount, err := exec.Command("bash", "-c", "oc get quota --all-namespaces | wc -l").Output()
 	if err != nil {
-		msg = "Could not parse quota count" + err.Error()
+		msg := "Could not parse quota count" + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	// Parse them
@@ -303,11 +283,11 @@ func CheckLimitsAndQuotas(allowedWithout int) (bool, string) {
 	log.Println("Parsed values (projects,limits,quotas)", pCount, lCount, qCount)
 
 	if (pCount - allowedWithout != lCount) {
-		return false, "There are some projects without limits"
+		return errors.New("There are some projects without limits")
 	}
 	if (pCount - allowedWithout != qCount) {
-		return false, "There are some projects without quotas"
+		return errors.New("There are some projects without quotas")
 	}
 
-	return true, ""
+	return nil
 }

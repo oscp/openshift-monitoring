@@ -6,42 +6,50 @@ import (
 	"strings"
 	"encoding/json"
 	"strconv"
+	"time"
+	"errors"
+	"fmt"
 )
 
-func CheckOpenFileCount() (bool, string) {
-	isOk := false
-	var msg string
+func CheckOpenFileCount() (error) {
 	out, err := exec.Command("bash", "-c", "cat /proc/sys/fs/file-nr | cut -f1").Output()
 	if err != nil {
-		msg = "Could not evaluate open file count: " + err.Error()
+		msg := "Could not evaluate open file count: " + err.Error()
 		log.Println(msg)
-		return isOk, msg
+		return errors.New(msg)
 	}
 
 	nr, err := strconv.Atoi(strings.TrimSpace(string(out)))
 
 	if (err != nil) {
-		msg = "Could not parse output to integer: " + string(out)
-		return isOk, msg
+		return errors.New("Could not parse output to integer: " + string(out))
 	}
 
 	if (nr < 200000) {
-		isOk = true
+		return nil
+	} else {
+		return errors.New("Open files are higher than 200'000 files!")
 	}
-
-	if (!isOk) {
-		msg = "Open files are higher than 200'000 files!"
-	}
-	return isOk, msg
 }
 
-func CheckGlusterStatus() (bool, string) {
-	var msg string
+func CheckGlusterStatus() (error) {
 	out, err := exec.Command("bash", "-c", "gstatus -abw -o json").Output()
 	if err != nil {
-		msg = "Could not check gstatus output: " + err.Error()
-		log.Println(msg)
-		return false, msg
+		if (strings.Contains(err.Error(), "exit status 16")) {
+			// Other gluster server did the same check the same time
+			// Try again 5 seconds
+			time.Sleep(5 * time.Second)
+			out, err = exec.Command("bash", "-c", "gstatus -abw -o json").Output()
+			if err != nil {
+				msg := "Could not check gstatus output. Tryed 2 times. Error: " + err.Error()
+				log.Println(msg)
+				return errors.New(msg)
+			}
+		} else {
+			msg := "Could not check gstatus output: " + err.Error()
+			log.Println(msg)
+			return errors.New(msg)
+		}
 	}
 
 	// Sample JSON
@@ -50,24 +58,24 @@ func CheckGlusterStatus() (bool, string) {
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(res), &dat); err != nil {
-		msg = "Error decoding gstatus output: " + res
+		msg := "Error decoding gstatus output: " + res
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	if (dat["status"] != "healthy") {
-		return false, "Status of GlusterFS is not healthy"
+		return errors.New("Status of GlusterFS is not healthy")
 	}
 
-	return true, ""
+	return nil
 }
 
-func CheckLVMPoolSizes(okSize int) (bool, string) {
+func CheckLVMPoolSizes(okSize int) (error) {
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep pool").Output()
 	if err != nil {
 		msg := "Could not parse LVM pool size: " + err.Error()
 		log.Println(msg)
-		return false, msg
+		return errors.New(msg)
 	}
 
 	lines := strings.Split(string(out), "\n")
@@ -78,10 +86,10 @@ func CheckLVMPoolSizes(okSize int) (bool, string) {
 			log.Println("Checking LVM Pool: ", l)
 
 			if (!isOk) {
-				return false, "LVM pool size is above: " + strconv.Itoa(okSize) + " | " + l
+				return fmt.Errorf("LVM pool size is above: %v | %v", strconv.Itoa(okSize), l)
 			}
 		}
 	}
 
-	return true, ""
+	return nil
 }
