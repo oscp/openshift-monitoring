@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"errors"
+	"fmt"
 )
 
 const (
@@ -89,6 +90,34 @@ func getEndpoint(slow bool) string {
 	} else {
 		return "fast"
 	}
+}
+
+func isVgSizeOk(stdOut string, okSize int) bool {
+	// Example
+	// 5.37 26.84 vg_fast_registry
+	// 5.37 26.84 vg_slow
+	num := regexp.MustCompile("(\\d+\\.\\d+)")
+	nums := num.FindAllString(stdOut, -1)
+
+	free, err := strconv.ParseFloat(nums[0], 64)
+	if (err != nil) {
+		log.Println("Unable to parse first digit of output", stdOut)
+		return false
+	}
+	size, err := strconv.ParseFloat(nums[1], 64)
+	if (err != nil) {
+		log.Println("Unable to parse second digit of output", stdOut)
+		return false
+	}
+
+	// calculate usage
+	if (100 / size * free < float64(okSize)) {
+		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %", size, free, okSize)
+		log.Println(msg)
+		return false
+	}
+
+	return true
 }
 
 func isLvsSizeOk(stdOut string, okSize int) bool {

@@ -70,10 +70,34 @@ func CheckGlusterStatus() (error) {
 	return nil
 }
 
-func CheckLVMPoolSizes(okSize int) (error) {
+func CheckVGSizes(okSize int) (error) {
+	out, err := exec.Command("bash", "-c", "vgs -o vg_free,vg_size,VG_NAME --noheadings --units G --nosuffix | grep -v crash").Output()
+	if err != nil {
+		msg := "Could not evaluate VG sizes: " + err.Error()
+		log.Println(msg)
+		return errors.New(msg)
+	}
+
+	lines := strings.Split(string(out), "\n")
+	for _, l := range lines {
+		if (len(l) > 0) {
+			isOk := isVgSizeOk(l, okSize)
+
+			log.Println("Checking VG size: ", l)
+
+			if (!isOk) {
+				return fmt.Errorf("VG size is below: %v | %v", strconv.Itoa(okSize), l)
+			}
+		}
+	}
+
+	return nil
+}
+
+func CheckLVPoolSizes(okSize int) (error) {
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep pool").Output()
 	if err != nil {
-		msg := "Could not parse LVM pool size: " + err.Error()
+		msg := "Could not evaluate LV pool size: " + err.Error()
 		log.Println(msg)
 		return errors.New(msg)
 	}
@@ -83,10 +107,10 @@ func CheckLVMPoolSizes(okSize int) (error) {
 		if (len(l) > 0) {
 			isOk := isLvsSizeOk(l, okSize)
 
-			log.Println("Checking LVM Pool: ", l)
+			log.Println("Checking LV Pool: ", l)
 
 			if (!isOk) {
-				return fmt.Errorf("LVM pool size is above: %v | %v", strconv.Itoa(okSize), l)
+				return fmt.Errorf("LV pool size is above: %v | %v", strconv.Itoa(okSize), l)
 			}
 		}
 	}

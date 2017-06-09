@@ -75,7 +75,11 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 				errors = append(errors, err.Error())
 			}
 
-			if err := checks.CheckLVMPoolSizes(90); err != nil {
+			if err := checks.CheckLVPoolSizes(90); err != nil {
+				errors = append(errors, err.Error())
+			}
+
+			if err := checks.CheckVGSizes(5); err != nil {
 				errors = append(errors, err.Error())
 			}
 		}

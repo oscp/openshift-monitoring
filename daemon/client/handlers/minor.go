@@ -59,7 +59,11 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			errors = append(errors, err.Error())
 		}
 
-		if err := checks.CheckLVMPoolSizes(80); err != nil {
+		if err := checks.CheckLVPoolSizes(80); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckVGSizes(10); err != nil {
 			errors = append(errors, err.Error())
 		}
 	}
