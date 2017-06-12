@@ -34,6 +34,8 @@ func CheckExternalSystem(url string) (error) {
 }
 
 func CheckNtpd() (error) {
+	log.Println("Checking output of ntpstat")
+
 	out, err := exec.Command("bash", "-c", "ntpstat").Output()
 	if err != nil {
 		msg := "Could not check ntpd status: " + err.Error()

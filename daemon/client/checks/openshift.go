@@ -11,6 +11,8 @@ import (
 )
 
 func CheckMasterApis(urls string) (error) {
+	log.Println("Checking master apis. At least one has to be up")
+
 	urlArr := strings.Split(urls, ",")
 
 	oneApiOk := false
@@ -31,6 +33,8 @@ func CheckMasterApis(urls string) (error) {
 }
 
 func CheckOcGetNodes() (error) {
+	log.Println("Checking oc get nodes output")
+
 	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false").Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
@@ -46,6 +50,8 @@ func CheckOcGetNodes() (error) {
 }
 
 func CheckDnsNslookupOnKubernetes() (error) {
+	log.Println("Checking nslookup to kubernetes ip")
+
 	cmd := exec.Command("nslookup", daemonDNSEndpoint, kubernetesIP)
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -66,6 +72,8 @@ func CheckDnsNslookupOnKubernetes() (error) {
 }
 
 func CheckDnsServiceNode() (error) {
+	log.Println("Checking dns to a openshift service")
+
 	ips := getIpsForName(daemonDNSServiceA)
 
 	if (ips == nil) {
@@ -76,6 +84,8 @@ func CheckDnsServiceNode() (error) {
 }
 
 func CheckDnsInPod() (error) {
+	log.Println("Checking dns to a openshift service inside a pod")
+
 	ips := getIpsForName(daemonDNSPod)
 
 	if (ips == nil) {
@@ -86,6 +96,8 @@ func CheckDnsInPod() (error) {
 }
 
 func CheckPodHttpAtoB() (error) {
+	log.Println("Checking if http connection does not work if network not joined")
+
 	// This should fail as we do not have access to this project
 	if err := checkHttp("http://" + daemonDNSServiceB + ":8090/hello"); err == nil {
 		errors.New("Pod A could access pod b. This should not be allowed!")
@@ -95,6 +107,8 @@ func CheckPodHttpAtoB() (error) {
 }
 
 func CheckPodHttpAtoC(slow bool) (error) {
+	log.Println("Checking if http connection does work with joined network")
+
 	if err := checkHttp("http://" + daemonDNSServiceC + ":8090/" + getEndpoint(slow)); err != nil {
 		return errors.New("Pod A could access pod C. This should not work. Route/Router problem?")
 	}
@@ -117,6 +131,8 @@ func CheckHttpService(slow bool) (error) {
 }
 
 func CheckHttpHaProxy(publicUrl string, slow bool) (error) {
+	log.Println("Checking http via HA-Proxy")
+
 	if err := checkHttp(publicUrl + ":80/" + getEndpoint(slow)); err != nil {
 		return errors.New("Could not access pods via haproxy. Route/Router problem?")
 	}
@@ -125,6 +141,8 @@ func CheckHttpHaProxy(publicUrl string, slow bool) (error) {
 }
 
 func CheckRegistryHealth(ip string) (error) {
+	log.Println("Checking registry health")
+
 	if err := checkHttp("http://" + ip + ":5000/healthz"); err != nil {
 		return fmt.Errorf("Registry health check failed. %v", err.Error())
 	}
@@ -133,6 +151,8 @@ func CheckRegistryHealth(ip string) (error) {
 }
 
 func CheckHawcularHealth(ip string) (error) {
+	log.Println("Checking metrics health")
+
 	if err := checkHttp("https://" + ip + ":443"); err != nil {
 		return errors.New("Hawcular health check failed")
 	}
@@ -141,6 +161,8 @@ func CheckHawcularHealth(ip string) (error) {
 }
 
 func CheckRouterHealth(ip string) (error) {
+	log.Println("Checking router health", ip)
+
 	if err := checkHttp("http://" + ip + ":1936/healthz"); err != nil {
 		return fmt.Errorf("Router health check failed for %v, %v", ip, err.Error())
 	}
@@ -149,6 +171,8 @@ func CheckRouterHealth(ip string) (error) {
 }
 
 func CheckLoggingRestartsCount() (error) {
+	log.Println("Checking log-container restart count")
+
 	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg := "Could not parse logging container restart count: " + err.Error()
@@ -176,6 +200,8 @@ func CheckLoggingRestartsCount() (error) {
 }
 
 func CheckRouterRestartCount() (error) {
+	log.Println("Checking router restart count")
+
 	out, err := exec.Command("bash", "-c", "oc get po -n default | grep router | grep -v deploy | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg := "Could not parse router restart count: " + err.Error()
@@ -203,6 +229,8 @@ func CheckRouterRestartCount() (error) {
 }
 
 func CheckEtcdHealth(etcdIps string, etcdCertPath string) (error) {
+	log.Println("Checking etcd health")
+
 	var msg string
 	isOk := true
 
@@ -251,6 +279,8 @@ func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) b
 }
 
 func CheckLimitsAndQuotas(allowedWithout int) (error) {
+	log.Println("Checking limits & quotas")
+
 	// Count projects
 	projectCount, err := exec.Command("bash", "-c", "oc get projects  | wc -l").Output()
 	if err != nil {

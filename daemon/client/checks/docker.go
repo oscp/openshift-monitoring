@@ -9,6 +9,8 @@ import (
 )
 
 func CheckDockerPool(okSize int) (error) {
+	log.Println("Checking docker pool used size")
+
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep docker-pool").Output()
 	if err != nil {
 		msg := "Could not parse docker pool size: " + err.Error()

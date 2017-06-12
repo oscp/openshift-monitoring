@@ -12,6 +12,8 @@ import (
 )
 
 func CheckOpenFileCount() (error) {
+	log.Println("Checking open files")
+
 	out, err := exec.Command("bash", "-c", "cat /proc/sys/fs/file-nr | cut -f1").Output()
 	if err != nil {
 		msg := "Could not evaluate open file count: " + err.Error()
@@ -33,6 +35,8 @@ func CheckOpenFileCount() (error) {
 }
 
 func CheckGlusterStatus() (error) {
+	log.Println("Checking gluster status with gstatus")
+
 	out, err := exec.Command("bash", "-c", "gstatus -abw -o json").Output()
 	if err != nil {
 		if (strings.Contains(err.Error(), "exit status 16")) {
@@ -71,6 +75,8 @@ func CheckGlusterStatus() (error) {
 }
 
 func CheckVGSizes(okSize int) (error) {
+	log.Println("Checking VG free size")
+
 	out, err := exec.Command("bash", "-c", "vgs -o vg_free,vg_size,VG_NAME --noheadings --units G --nosuffix | grep -v crash").Output()
 	if err != nil {
 		msg := "Could not evaluate VG sizes: " + err.Error()
@@ -95,6 +101,8 @@ func CheckVGSizes(okSize int) (error) {
 }
 
 func CheckLVPoolSizes(okSize int) (error) {
+	log.Println("Checking LV pool used size")
+
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep pool").Output()
 	if err != nil {
 		msg := "Could not evaluate LV pool size: " + err.Error()
