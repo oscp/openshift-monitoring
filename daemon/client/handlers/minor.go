@@ -52,6 +52,10 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		if err := checks.CheckHttpService(false); err != nil {
 			errors = append(errors, err.Error())
 		}
+
+		if err := checks.CheckLoggingRestartsCount(); err != nil {
+			errors = append(errors, err.Error())
+		}
 	}
 
 	if (daemonType == "STORAGE") {

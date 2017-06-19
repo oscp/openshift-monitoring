@@ -54,10 +54,6 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			errors = append(errors, err.Error())
 		}
 
-		if err := checks.CheckLoggingRestartsCount(); err != nil {
-			errors = append(errors, err.Error())
-		}
-
 		if err := checks.CheckDnsNslookupOnKubernetes(); err != nil {
 			errors = append(errors, err.Error())
 		}
