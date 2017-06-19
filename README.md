@@ -59,14 +59,14 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 |         |               | Checks if hawcular is healthy                           | 
 |         |               | Checks if ha-proxy has a high restart count             | 
 |         |               | Checks if all projects have limits & quotas             | 
-|         |               | Checks if http access via service is ok       | 
+|         |               | Checks if logging pods are healthy                      |
+|         |               | Checks if http access via service is ok       |
 | MASTER  | /checks/major | Checks if output of 'oc get nodes' is fine              | 
 |         |               | Checks if etcd cluster is healthy                       | 
 |         |               | Checks if docker registry is healthy                    | 
 |         |               | Checks if all routers are healthy                       | 
 |         |               | Checks if local master api is healthy                   | 
-|         |               | Checks if logging pods are healthy                      | 
-|         |               | Check if dns is ok via kubernetes & dnsmasq             | 
+|         |               | Check if dns is ok via kubernetes & dnsmasq             |
 | STORAGE | /checks/minor | Checks if open-files count is higher than 200'000 files | 
 |         |               | Checks every lvs-pool size. Is the value above 80%?     | 
 |         |               | Checks every VG has at least 10% free storage           | 
