@@ -92,6 +92,9 @@ func getEndpoint(slow bool) string {
 	}
 }
 
+// isVgSizeOk returns true if vgs output in stdOut indicates that the volume
+// group free space is equal or above the percentage treshold okSize, which is
+// expected to be in the range [0, 100].
 func isVgSizeOk(stdOut string, okSize int) bool {
 	// Example
 	// 5.37 26.84 vg_fast_registry
