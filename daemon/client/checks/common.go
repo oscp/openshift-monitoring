@@ -100,7 +100,12 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 	// Example
 	// 5.37 26.84 vg_fast_registry
 	// 5.37 26.84 vg_slow
-	nums := num.FindAllString(stdOut, -1)
+	nums := num.FindAllString(stdOut, 2)
+
+	if len(nums) != 2 {
+		log.Println("Unable to parse vgs output:", stdOut)
+		return false
+	}
 
 	free, err := strconv.ParseFloat(nums[0], 64)
 	if (err != nil) {

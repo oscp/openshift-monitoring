@@ -18,6 +18,7 @@ func TestIsVgSizeOk(t *testing.T) {
 		okSize int
 		want   bool
 	}{
+		{"invalid input", 99, false},
 		{"5.37 26.84 vg_slow", 5, true},
 		{"5.37 26.84 vg_slow", 25, false},
 	}
