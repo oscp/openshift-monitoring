@@ -128,6 +128,9 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 	return true
 }
 
+// isLvsSizeOk returns true if lvs output in stdOut indicates that the logical
+// volume percentage full for data and metadata are both below the threshold
+// okSize, which is expected to be in the range [0, 100].
 func isLvsSizeOk(stdOut string, okSize int) bool {
 	// Examples
 	// 42.10  8.86   docker-pool
