@@ -22,7 +22,7 @@ const (
 	kubernetesIP = "172.30.0.1"
 )
 
-var num = regexp.MustCompile("(\\d+\\.\\d+)")
+var num = regexp.MustCompile(`\d+(?:\.\d+)?`)
 
 func CheckExternalSystem(url string) (error) {
 	if err := checkHttp(url); err != nil {

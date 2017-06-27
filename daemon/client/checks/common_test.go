@@ -21,6 +21,8 @@ func TestIsVgSizeOk(t *testing.T) {
 		{"invalid input", 99, false},
 		{"5.37 26.84 vg_slow", 5, true},
 		{"5.37 26.84 vg_slow", 25, false},
+		{"      0 511.03 fedora", 10, false},
+		{"\t25\t250 test", 10, true},
 	}
 	for _, tt := range tests {
 		if got := isVgSizeOk(tt.line, tt.okSize); got != tt.want {
