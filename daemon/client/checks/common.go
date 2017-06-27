@@ -22,6 +22,7 @@ const (
 	kubernetesIP = "172.30.0.1"
 )
 
+var num = regexp.MustCompile("(\\d+\\.\\d+)")
 
 func CheckExternalSystem(url string) (error) {
 	if err := checkHttp(url); err != nil {
@@ -99,7 +100,6 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 	// Example
 	// 5.37 26.84 vg_fast_registry
 	// 5.37 26.84 vg_slow
-	num := regexp.MustCompile("(\\d+\\.\\d+)")
 	nums := num.FindAllString(stdOut, -1)
 
 	free, err := strconv.ParseFloat(nums[0], 64)
