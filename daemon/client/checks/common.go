@@ -112,7 +112,7 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 
 	// calculate usage
 	if (100 / size * free < float64(okSize)) {
-		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %", size, free, okSize)
+		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %%", size, free, okSize)
 		log.Println(msg)
 		return false
 	}
