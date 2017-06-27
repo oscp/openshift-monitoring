@@ -135,8 +135,6 @@ func isLvsSizeOk(stdOut string, okSize int) bool {
 	// Examples
 	// 42.10  8.86   docker-pool
 	// 13.63  8.93   lv_fast_registry_pool
-	num := regexp.MustCompile("(\\d+\\.\\d+)")
-
 	checksOk := 0
 	for _, nr := range num.FindAllString(stdOut, -1) {
 		i, err := strconv.ParseFloat(nr, 64)
