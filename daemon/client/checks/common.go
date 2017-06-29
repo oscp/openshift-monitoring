@@ -22,6 +22,7 @@ const (
 	kubernetesIP = "172.30.0.1"
 )
 
+var num = regexp.MustCompile(`\d+(?:\.\d+)?`)
 
 func CheckExternalSystem(url string) (error) {
 	if err := checkHttp(url); err != nil {
@@ -92,12 +93,19 @@ func getEndpoint(slow bool) string {
 	}
 }
 
+// isVgSizeOk returns true if vgs output in stdOut indicates that the volume
+// group free space is equal or above the percentage treshold okSize, which is
+// expected to be in the range [0, 100].
 func isVgSizeOk(stdOut string, okSize int) bool {
 	// Example
 	// 5.37 26.84 vg_fast_registry
 	// 5.37 26.84 vg_slow
-	num := regexp.MustCompile("(\\d+\\.\\d+)")
-	nums := num.FindAllString(stdOut, -1)
+	nums := num.FindAllString(stdOut, 2)
+
+	if len(nums) != 2 {
+		log.Println("Unable to parse vgs output:", stdOut)
+		return false
+	}
 
 	free, err := strconv.ParseFloat(nums[0], 64)
 	if (err != nil) {
@@ -112,7 +120,7 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 
 	// calculate usage
 	if (100 / size * free < float64(okSize)) {
-		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %", size, free, okSize)
+		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %%", size, free, okSize)
 		log.Println(msg)
 		return false
 	}
@@ -120,12 +128,13 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 	return true
 }
 
+// isLvsSizeOk returns true if lvs output in stdOut indicates that the logical
+// volume percentage full for data and metadata are both below the threshold
+// okSize, which is expected to be in the range [0, 100].
 func isLvsSizeOk(stdOut string, okSize int) bool {
 	// Examples
 	// 42.10  8.86   docker-pool
 	// 13.63  8.93   lv_fast_registry_pool
-	num := regexp.MustCompile("(\\d+\\.\\d+)")
-
 	checksOk := 0
 	for _, nr := range num.FindAllString(stdOut, -1) {
 		i, err := strconv.ParseFloat(nr, 64)
