@@ -65,7 +65,7 @@ func runOcGetNodes() (string, error) {
 		log.Println(msg)
 		return "", errors.New(msg)
 	}
-	return strings(out), nil
+	return string(out), nil
 }
 
 func CheckDnsNslookupOnKubernetes() error {
