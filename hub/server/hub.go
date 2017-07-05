@@ -1,9 +1,9 @@
 package server
 
 import (
-	"log"
-	"github.com/oscp/openshift-monitoring/models"
 	"github.com/cenkalti/rpc2"
+	"github.com/oscp/openshift-monitoring/models"
+	"log"
 	"net"
 	"time"
 )
@@ -22,23 +22,23 @@ func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string,
 	etcdIps string, etcdCertPath string) *Hub {
 
 	return &Hub{
-		hubAddr: hubAddr,
-		daemons: make(map[string]*models.DaemonClient),
-		startChecks: make(chan models.Checks),
-		stopChecks: make(chan bool),
-		toUi: make(chan models.BaseModel, 1000),
+		hubAddr:      hubAddr,
+		daemons:      make(map[string]*models.DaemonClient),
+		startChecks:  make(chan models.Checks),
+		stopChecks:   make(chan bool),
+		toUi:         make(chan models.BaseModel, 1000),
 		checkResults: []models.CheckResult{},
 		currentChecks: models.Checks{
-			CheckInterval: 5000,
-			MasterApiUrls: masterApiUrls,
+			CheckInterval:   5000,
+			MasterApiUrls:   masterApiUrls,
 			DaemonPublicUrl: daemonPublicUrl,
-			MasterApiCheck: true,
-			HttpChecks: true,
-			DnsCheck:true,
-			EtcdCheck: true,
-			EtcdIps: etcdIps,
-			EtcdCertPath: etcdCertPath,
-			IsRunning:false },
+			MasterApiCheck:  true,
+			HttpChecks:      true,
+			DnsCheck:        true,
+			EtcdCheck:       true,
+			EtcdIps:         etcdIps,
+			EtcdCertPath:    etcdCertPath,
+			IsRunning:       false},
 	}
 }
 
@@ -92,11 +92,11 @@ func updateUI(h *Hub) {
 		for {
 			select {
 			case <-tick:
-			// Update checkresults
+				// Update checkresults
 				h.toUi <- models.BaseModel{Type: models.CHECK_RESULTS, Message: h.checkResults}
 				h.checkResults = []models.CheckResult{}
 
-			// Update deamons
+				// Update deamons
 				h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
 			}
 		}
@@ -118,7 +118,7 @@ func handleChecksStop(h *Hub) {
 	for {
 		var stop bool = <-h.stopChecks
 
-		if (stop) {
+		if stop {
 			for _, d := range h.daemons {
 				if err := d.Client.Call("stopChecks", stop, nil); err != nil {
 					log.Println("error stopping checks on daemon", err)

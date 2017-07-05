@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"net/http"
 	"github.com/oscp/openshift-monitoring/daemon/client/checks"
-	"os"
 	"log"
+	"net/http"
+	"os"
 	"strconv"
 )
 
 func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
 	errors := []string{}
-	if (daemonType == "NODE") {
+	if daemonType == "NODE" {
 		if err := checks.CheckDockerPool(80); err != nil {
 			errors = append(errors, err.Error())
 		}
@@ -20,16 +20,16 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if (daemonType == "MASTER") {
+	if daemonType == "MASTER" {
 		externalSystem := os.Getenv("EXTERNAL_SYSTEM_URL")
 		hawcularIp := os.Getenv("HAWCULAR_SVC_IP")
 		allowedWithout := os.Getenv("PROJECTS_WITHOUT_LIMITS")
-		if (len(externalSystem) == 0 || len(allowedWithout) == 0) {
+		if len(externalSystem) == 0 || len(allowedWithout) == 0 {
 			log.Fatal("env variables 'EXTERNAL_SYSTEM_URL', 'PROJECTS_WITHOUT_LIMITS', 'HAWCULAR_SVC_IP' must be specified on type 'MASTER'")
 		}
 
 		allowedWithoutInt, err := strconv.Atoi(allowedWithout)
-		if (err != nil) {
+		if err != nil {
 			log.Fatal("allowedWithout seems not to be an integer", allowedWithout)
 		}
 
@@ -58,7 +58,7 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if (daemonType == "STORAGE") {
+	if daemonType == "STORAGE" {
 		if err := checks.CheckOpenFileCount(); err != nil {
 			errors = append(errors, err.Error())
 		}

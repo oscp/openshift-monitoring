@@ -1,16 +1,16 @@
 package client
 
 import (
-	"net/http"
-	"log"
-	"os"
 	"github.com/oscp/openshift-monitoring/daemon/client/handlers"
+	"log"
+	"net/http"
+	"os"
 )
 
 func RunWebserver(daemonType string) {
 	addr := os.Getenv("SERVER_ADDRESS")
 
-	if (len(addr) == 0) {
+	if len(addr) == 0 {
 		addr = ":8090"
 	}
 

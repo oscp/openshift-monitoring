@@ -1,10 +1,10 @@
 package server
 
 import (
-	"github.com/oscp/openshift-monitoring/models"
-	"log"
 	"github.com/cenkalti/rpc2"
 	"github.com/mitchellh/mapstructure"
+	"github.com/oscp/openshift-monitoring/models"
+	"log"
 )
 
 func daemonLeave(h *Hub, host string) {
@@ -17,9 +17,9 @@ func daemonLeave(h *Hub, host string) {
 func daemonJoin(h *Hub, d *models.Daemon, c *rpc2.Client) {
 	log.Println("new daemon joined:", d)
 
-	h.daemons[d.Hostname] = &models.DaemonClient{Client:c, Daemon: *d}
+	h.daemons[d.Hostname] = &models.DaemonClient{Client: c, Daemon: *d}
 
-	if (h.currentChecks.IsRunning) {
+	if h.currentChecks.IsRunning {
 		// Tell the new daemon to join the checks
 		if err := c.Call("startChecks", h.currentChecks, nil); err != nil {
 			log.Println("error starting checks on newly joined daemon", err)

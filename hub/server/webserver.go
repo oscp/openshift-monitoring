@@ -1,10 +1,10 @@
 package server
 
 import (
-	"net/http"
-	"log"
 	"github.com/gorilla/websocket"
 	"github.com/oscp/openshift-monitoring/models"
+	"log"
+	"net/http"
 )
 
 var upgrader = websocket.Upgrader{
@@ -61,7 +61,7 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 			res = stopChecks(h)
 			break
 		case models.CURRENT_CHECKS:
-			res = models.BaseModel{Type:models.CURRENT_CHECKS, Message: h.currentChecks}
+			res = models.BaseModel{Type: models.CURRENT_CHECKS, Message: h.currentChecks}
 		}
 
 		err = c.WriteJSON(res)

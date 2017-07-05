@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/oscp/openshift-monitoring/hub/server"
 	"log"
 	"net/http"
-	"github.com/oscp/openshift-monitoring/hub/server"
 )
 
 var uiAddr = flag.String("UI_ADDR", "localhost:8080", "http service endpoint")
@@ -36,4 +36,3 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(*uiAddr, nil))
 }
-

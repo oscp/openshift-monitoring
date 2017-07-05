@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"net/http"
-	"io"
-	"time"
-	"math/rand"
-	"github.com/oscp/openshift-monitoring/models"
-	"os"
 	"encoding/json"
+	"github.com/oscp/openshift-monitoring/models"
+	"io"
+	"math/rand"
+	"net/http"
+	"os"
+	"time"
 )
 
 func FastHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,15 +23,15 @@ func SlowHandler(w http.ResponseWriter, r *http.Request) {
 
 func random(min, max int) int {
 	rand.Seed(time.Now().Unix())
-	return rand.Intn(max - min) + min
+	return rand.Intn(max-min) + min
 }
 
 func generateResponse(w http.ResponseWriter, errors []string) {
 	host, _ := os.Hostname()
 	r := models.CheckResult{
 		Hostname: host,
-		Type: "OSE_CHECKS",
-		IsOk: true,
+		Type:     "OSE_CHECKS",
+		IsOk:     true,
 	}
 
 	for _, s := range errors {
@@ -40,7 +40,7 @@ func generateResponse(w http.ResponseWriter, errors []string) {
 	}
 
 	json, err := json.Marshal(r)
-	if (err != nil) {
+	if err != nil {
 		http.Error(w, "Error while generating response", http.StatusInternalServerError)
 		return
 	}

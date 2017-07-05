@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"net/http"
 	"github.com/oscp/openshift-monitoring/daemon/client/checks"
-	"os"
 	"log"
+	"net/http"
+	"os"
 	"strings"
 )
 
 func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
 	errors := []string{}
-	if (daemonType == "NODE") {
+	if daemonType == "NODE" {
 		if err := checks.CheckDockerPool(90); err != nil {
 			errors = append(errors, err.Error())
 		}
@@ -24,11 +24,11 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if (daemonType == "MASTER") {
+	if daemonType == "MASTER" {
 		etcdIps := os.Getenv("ETCD_IPS")
 		registryIp := os.Getenv("REGISTRY_SVC_IP")
 		routerIps := os.Getenv("ROUTER_IPS")
-		if (len(etcdIps) == 0 || len(registryIp) == 0 || len(routerIps) == 0) {
+		if len(etcdIps) == 0 || len(registryIp) == 0 || len(routerIps) == 0 {
 			log.Fatal("env variables 'ETCD_IPS', 'REGISTRY_SVC_IP', 'ROUTER_IPS' must be specified on type 'MASTER'")
 		}
 
@@ -63,10 +63,10 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if (daemonType == "STORAGE") {
+	if daemonType == "STORAGE" {
 		isGlusterServer := os.Getenv("IS_GLUSTER_SERVER")
 
-		if (isGlusterServer == "true") {
+		if isGlusterServer == "true" {
 			if err := checks.CheckGlusterStatus(); err != nil {
 				errors = append(errors, err.Error())
 			}

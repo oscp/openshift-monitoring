@@ -1,28 +1,28 @@
 package client
 
 import (
-	"net"
 	"github.com/cenkalti/rpc2"
-	"github.com/oscp/openshift-monitoring/models"
-	"os"
-	"log"
-	"time"
-	"strings"
 	"github.com/oscp/openshift-monitoring/daemon/client/checks"
+	"github.com/oscp/openshift-monitoring/models"
+	"log"
+	"net"
+	"os"
+	"strings"
+	"time"
 )
 
 func StartDaemon(h string, dt string, ns string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
 	d := models.Daemon{Hostname: host,
-		Namespace: ns,
-		DaemonType: dt,
-		StartedChecks: 0,
-		FailedChecks:0,
-		SuccessfulChecks:0}
+		Namespace:        ns,
+		DaemonType:       dt,
+		StartedChecks:    0,
+		FailedChecks:     0,
+		SuccessfulChecks: 0}
 
 	dc := &models.DaemonClient{Daemon: d,
-		Quit: make(chan bool),
+		Quit:  make(chan bool),
 		ToHub: make(chan models.CheckResult)}
 
 	// Register on hub
@@ -65,14 +65,14 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 				HandleChecksStopped(dc)
 				return
 			case <-tickInt:
-				if (checkConfig.MasterApiCheck) {
+				if checkConfig.MasterApiCheck {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckMasterApis(checkConfig.MasterApiUrls)
 						HandleCheckFinished(dc, err, models.MASTER_API_CHECK)
 					}()
 				}
-				if (checkConfig.EtcdCheck && dc.Daemon.IsMaster()) {
+				if checkConfig.EtcdCheck && dc.Daemon.IsMaster() {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckEtcdHealth(checkConfig.EtcdIps, checkConfig.EtcdCertPath)
@@ -80,14 +80,14 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 					}()
 				}
 			case <-tickExt:
-				if (checkConfig.DnsCheck) {
+				if checkConfig.DnsCheck {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckDnsNslookupOnKubernetes()
 						HandleCheckFinished(dc, err, models.DNS_NSLOOKUP_KUBERNETES)
 					}()
 
-					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
+					if dc.Daemon.IsNode() || dc.Daemon.IsMaster() {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckDnsServiceNode()
@@ -95,7 +95,7 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 						}()
 					}
 
-					if (dc.Daemon.IsPod()) {
+					if dc.Daemon.IsPod() {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckDnsInPod()
@@ -104,8 +104,8 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 					}
 				}
 
-				if (checkConfig.HttpChecks) {
-					if (dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a")) {
+				if checkConfig.HttpChecks {
+					if dc.Daemon.IsPod() && strings.HasSuffix(dc.Daemon.Namespace, "a") {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckPodHttpAtoB()
@@ -123,7 +123,7 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 						}()
 					}
 
-					if (dc.Daemon.IsNode() || dc.Daemon.IsMaster()) {
+					if dc.Daemon.IsNode() || dc.Daemon.IsMaster() {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckHttpService(false)
@@ -156,4 +156,3 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 func stopChecks(dc *models.DaemonClient) {
 	dc.Quit <- true
 }
-

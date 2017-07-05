@@ -1,10 +1,10 @@
 package client
 
 import (
+	"github.com/cenkalti/rpc2"
 	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"os"
-	"github.com/cenkalti/rpc2"
 )
 
 func registerOnHub(h string, dc *models.DaemonClient) {
@@ -36,7 +36,7 @@ func HandleCheckStarted(dc *models.DaemonClient) {
 
 func HandleCheckFinished(dc *models.DaemonClient, err error, t string) {
 	// Update check counts
-	if (err == nil) {
+	if err == nil {
 		dc.ToHub <- models.CheckResult{Type: t, IsOk: true, Message: ""}
 		dc.Daemon.SuccessfulChecks++
 	} else {
@@ -69,5 +69,3 @@ func handleCheckResultToHub(dc *models.DaemonClient) {
 		}
 	}
 }
-
-

@@ -1,17 +1,17 @@
 package checks
 
 import (
-	"os/exec"
-	"log"
-	"strings"
 	"encoding/json"
-	"strconv"
-	"time"
 	"errors"
 	"fmt"
+	"log"
+	"os/exec"
+	"strconv"
+	"strings"
+	"time"
 )
 
-func CheckOpenFileCount() (error) {
+func CheckOpenFileCount() error {
 	log.Println("Checking open files")
 
 	out, err := exec.Command("bash", "-c", "cat /proc/sys/fs/file-nr | cut -f1").Output()
@@ -23,23 +23,23 @@ func CheckOpenFileCount() (error) {
 
 	nr, err := strconv.Atoi(strings.TrimSpace(string(out)))
 
-	if (err != nil) {
+	if err != nil {
 		return errors.New("Could not parse output to integer: " + string(out))
 	}
 
-	if (nr < 200000) {
+	if nr < 200000 {
 		return nil
 	} else {
 		return errors.New("Open files are higher than 200'000 files!")
 	}
 }
 
-func CheckGlusterStatus() (error) {
+func CheckGlusterStatus() error {
 	log.Println("Checking gluster status with gstatus")
 
 	out, err := exec.Command("bash", "-c", "gstatus -abw -o json").Output()
 	if err != nil {
-		if (strings.Contains(err.Error(), "exit status 16")) {
+		if strings.Contains(err.Error(), "exit status 16") {
 			// Other gluster server did the same check the same time
 			// Try again 5 seconds
 			time.Sleep(5 * time.Second)
@@ -67,14 +67,14 @@ func CheckGlusterStatus() (error) {
 		return errors.New(msg)
 	}
 
-	if (dat["status"] != "healthy") {
+	if dat["status"] != "healthy" {
 		return errors.New("Status of GlusterFS is not healthy")
 	}
 
 	return nil
 }
 
-func CheckVGSizes(okSize int) (error) {
+func CheckVGSizes(okSize int) error {
 	log.Println("Checking VG free size")
 
 	out, err := exec.Command("bash", "-c", "vgs -o vg_free,vg_size,VG_NAME --noheadings --units G --nosuffix | grep -v crash").Output()
@@ -86,12 +86,12 @@ func CheckVGSizes(okSize int) (error) {
 
 	lines := strings.Split(string(out), "\n")
 	for _, l := range lines {
-		if (len(l) > 0) {
+		if len(l) > 0 {
 			isOk := isVgSizeOk(l, okSize)
 
 			log.Println("Checking VG size: ", l)
 
-			if (!isOk) {
+			if !isOk {
 				return fmt.Errorf("VG size is below: %v | %v", strconv.Itoa(okSize), l)
 			}
 		}
@@ -100,7 +100,7 @@ func CheckVGSizes(okSize int) (error) {
 	return nil
 }
 
-func CheckLVPoolSizes(okSize int) (error) {
+func CheckLVPoolSizes(okSize int) error {
 	log.Println("Checking LV pool used size")
 
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep pool").Output()
@@ -112,12 +112,12 @@ func CheckLVPoolSizes(okSize int) (error) {
 
 	lines := strings.Split(string(out), "\n")
 	for _, l := range lines {
-		if (len(l) > 0) {
+		if len(l) > 0 {
 			isOk := isLvsSizeOk(l, okSize)
 
 			log.Println("Checking LV Pool: ", l)
 
-			if (!isOk) {
+			if !isOk {
 				return fmt.Errorf("LV pool size is above: %v | %v", strconv.Itoa(okSize), l)
 			}
 		}

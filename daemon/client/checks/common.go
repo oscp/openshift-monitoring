@@ -1,16 +1,16 @@
 package checks
 
 import (
-	"net"
-	"log"
-	"net/http"
 	"crypto/tls"
-	"strings"
+	"errors"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
 	"os/exec"
 	"regexp"
 	"strconv"
-	"errors"
-	"fmt"
+	"strings"
 )
 
 const (
@@ -18,13 +18,13 @@ const (
 	daemonDNSServiceA = "daemon.ose-mon-a.svc.cluster.local"
 	daemonDNSServiceB = "daemon.ose-mon-b.svc.cluster.local"
 	daemonDNSServiceC = "daemon.ose-mon-c.svc.cluster.local"
-	daemonDNSPod = "daemon"
-	kubernetesIP = "172.30.0.1"
+	daemonDNSPod      = "daemon"
+	kubernetesIP      = "172.30.0.1"
 )
 
 var num = regexp.MustCompile(`\d+(?:\.\d+)?`)
 
-func CheckExternalSystem(url string) (error) {
+func CheckExternalSystem(url string) error {
 	if err := checkHttp(url); err != nil {
 		msg := "Call to " + url + " failed"
 		log.Println(msg)
@@ -34,7 +34,7 @@ func CheckExternalSystem(url string) (error) {
 	return nil
 }
 
-func CheckNtpd() (error) {
+func CheckNtpd() error {
 	log.Println("Checking output of ntpstat")
 
 	out, err := exec.Command("bash", "-c", "ntpstat").Output()
@@ -53,7 +53,7 @@ func CheckNtpd() (error) {
 
 func getIpsForName(n string) []net.IP {
 	ips, err := net.LookupIP(n)
-	if (err != nil) {
+	if err != nil {
 		log.Println("failed to lookup ip for name ", n)
 		return nil
 	}
@@ -62,13 +62,13 @@ func getIpsForName(n string) []net.IP {
 
 func checkHttp(toCall string) error {
 	log.Println("Checking access to:", toCall)
-	if (strings.HasPrefix(toCall, "https")) {
+	if strings.HasPrefix(toCall, "https") {
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		client := &http.Client{Transport: tr}
 		resp, err := client.Get(toCall)
-		if (err != nil) {
+		if err != nil {
 			log.Println("error in http check: ", err)
 			return err
 		} else {
@@ -77,7 +77,7 @@ func checkHttp(toCall string) error {
 		}
 	} else {
 		resp, err := http.Get(toCall)
-		if (err != nil) {
+		if err != nil {
 			log.Println("error in http check: ", err)
 			return err
 		} else {
@@ -88,7 +88,7 @@ func checkHttp(toCall string) error {
 }
 
 func getEndpoint(slow bool) string {
-	if (slow) {
+	if slow {
 		return "slow"
 	} else {
 		return "fast"
@@ -110,18 +110,18 @@ func isVgSizeOk(stdOut string, okSize int) bool {
 	}
 
 	free, err := strconv.ParseFloat(nums[0], 64)
-	if (err != nil) {
+	if err != nil {
 		log.Println("Unable to parse first digit of output", stdOut)
 		return false
 	}
 	size, err := strconv.ParseFloat(nums[1], 64)
-	if (err != nil) {
+	if err != nil {
 		log.Println("Unable to parse second digit of output", stdOut)
 		return false
 	}
 
 	// calculate usage
-	if (100 / size * free < float64(okSize)) {
+	if 100/size*free < float64(okSize) {
 		msg := fmt.Sprintf("VG free size is below treshold. Size: %v, free: %v, treshold: %v %%", size, free, okSize)
 		log.Println(msg)
 		return false
@@ -140,12 +140,12 @@ func isLvsSizeOk(stdOut string, okSize int) bool {
 	checksOk := 0
 	for _, nr := range num.FindAllString(stdOut, -1) {
 		i, err := strconv.ParseFloat(nr, 64)
-		if (err != nil) {
+		if err != nil {
 			log.Print("Unable to parse int:", nr)
 			return false
 		}
 
-		if (i < float64(okSize)) {
+		if i < float64(okSize) {
 			checksOk++
 		} else {
 			log.Println("LVM pool size exceeded okSize:", i)
