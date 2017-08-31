@@ -247,57 +247,6 @@ func CheckRouterRestartCount() error {
 	}
 }
 
-func CheckRouterLogoutput() error {
-	log.Println("Checking if every router writes logs. If not it's broken")
-
-	out, err := exec.Command("bash", "-c", "oc get pods -n default --no-headers | grep router | grep Running | awk  {'print $1;'}").Output()
-	if err != nil {
-		msg := "Could not get all router names: " + err.Error()
-		log.Println(msg)
-		return errors.New(msg)
-	}
-
-	for _, routerName := range strings.Split(string(out), "\n") {
-		if len(strings.TrimSpace(routerName)) > 0 {
-
-			logSize, err := getRouterLogSize(routerName)
-			if err != nil {
-				// Wait a few seconds and see if it is still brocken
-				// to avoid wrong alerts
-				time.Sleep(10 * time.Second)
-
-				logSize, err = getRouterLogSize(routerName)
-				if err != nil {
-					return err
-				}
-			}
-
-			if logSize < 1 {
-				return fmt.Errorf("Router %v has no log lines. Seems that it is stuck!", routerName)
-			}
-		}
-	}
-
-	return nil
-}
-
-func getRouterLogSize(routerName string) (int, error) {
-	out, err := exec.Command("bash", "-c", "oc logs -n default --timestamps=false --since=60s "+routerName+" | wc -l").Output()
-	if err != nil {
-		msg := fmt.Sprintf("Could not logs of router: %v, Error: %v", routerName, err.Error())
-		log.Println(msg)
-		return -1, errors.New(msg)
-	}
-
-	logSize, err := strconv.Atoi(strings.TrimSpace(string(out)))
-	if err != nil {
-		msg := fmt.Sprintf("Tryed to parse log output of router: %v. Could not parse integer of log lines. "+
-			"Seems that this pod is stuck! Output of 'oc logs | wc -l' %v", routerName, string(out))
-		return -1, errors.New(msg)
-	}
-	return logSize, nil
-}
-
 func CheckEtcdHealth(etcdIps string, etcdCertPath string) error {
 	log.Println("Checking etcd health")
 
