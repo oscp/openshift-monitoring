@@ -272,8 +272,8 @@ func CheckRouterLogoutput() error {
 				}
 			}
 
-			if logSize < 100 {
-				return fmt.Errorf("Router %v has less log lines than 100. Seems that it is stuck!", routerName)
+			if logSize < 1 {
+				return fmt.Errorf("Router %v has no log lines. Seems that it is stuck!", routerName)
 			}
 		}
 	}
@@ -282,7 +282,7 @@ func CheckRouterLogoutput() error {
 }
 
 func getRouterLogSize(routerName string) (int, error) {
-	out, err := exec.Command("bash", "-c", "oc logs --timestamps=false --since=60s "+routerName+" | wc -l").Output()
+	out, err := exec.Command("bash", "-c", "oc logs -n default --timestamps=false --since=60s "+routerName+" | wc -l").Output()
 	if err != nil {
 		msg := fmt.Sprintf("Could not logs of router: %v, Error: %v", routerName, err.Error())
 		log.Println(msg)
