@@ -37,13 +37,13 @@ func CheckOpenFileCount() error {
 func CheckGlusterStatus() error {
 	log.Println("Checking gluster status with gstatus")
 
-	out, err := exec.Command("bash", "-c", "gstatus -abw -o json").Output()
+	out, err := exec.Command("bash", "-c", "gstatus -o json").Output()
 	if err != nil {
-		if strings.Contains(err.Error(), "exit status 16") {
+		if strings.Contains(err.Error(), "exit status 16") || strings.Contains(err.Error(), "exit status 1") || strings.Contains(err.Error(), "exit status 12") {
 			// Other gluster server did the same check the same time
 			// Try again 5 seconds
 			time.Sleep(5 * time.Second)
-			out, err = exec.Command("bash", "-c", "gstatus -abw -o json").Output()
+			out, err = exec.Command("bash", "-c", "gstatus -o json").Output()
 			if err != nil {
 				msg := "Could not check gstatus output. Tryed 2 times. Error: " + err.Error()
 				log.Println(msg)
