@@ -1,4 +1,4 @@
-FROM golang:1.7.4-wheezy
+FROM golang:1.8-jessie
 
 WORKDIR /go/src/github.com/oscp/openshift-monitoring/daemon/
 
