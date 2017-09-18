@@ -16,6 +16,7 @@ Environment=PROJECTS_WITHOUT_LIMITS=## infra project count here ##
 
 ## STORAGE
 Environment=IS_GLUSTER_SERVER=true
+Environment=MOUNTPOINTS_TO_CHECK=/gluster/registry
 
 ExecStart=/opt/ose-mon/daemon
 Restart=always

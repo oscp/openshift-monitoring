@@ -70,9 +70,11 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 | STORAGE | /checks/minor | Checks if open-files count is higher than 200'000 files | 
 |         |               | Checks every lvs-pool size. Is the value above 80%?     | 
 |         |               | Checks every VG has at least 10% free storage           | 
+|         |               | Checks if every specified mount path has at least 15% free storage           | 
 | STORAGE | /checks/major | Checks if output of gstatus is 'healthy'                | 
 |         |               | Checks every lvs-pool size. Is the value above 90%?     | 
 |         |               | Checks every VG has at least 5% free storage            | 
+|         |               | Checks if every specified mount path has at least 10% free storage           | 
 
 # Config parameters
 ## Hub
@@ -107,6 +109,7 @@ REGISTRY\_SVC\_IP|MASTER|Ip of the registry service|10.10.10.1
 ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
 PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
 IS\_GLUSTER\_SERVER|STORAGE|Boolean value of the node is a gluster server|true/false
+MOUNTPOINTS\_TO\_CHECK|A list of mount points where free size should be checked|/gluster/registry/,/gluster/xxx
 
 # Installation
 ### OpenShift

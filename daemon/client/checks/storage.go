@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
+	"regexp"
 )
 
 func CheckOpenFileCount() error {
@@ -121,6 +123,64 @@ func CheckLVPoolSizes(okSize int) error {
 				return fmt.Errorf("LV pool size is above: %v | %v", strconv.Itoa(okSize), l)
 			}
 		}
+	}
+
+	return nil
+}
+
+func CheckMountPointSizes(okSize int) error {
+	mounts := os.Getenv("MOUNTPOINTS_TO_CHECK")
+
+	if mounts == "" {
+		return nil
+	}
+
+	mountList := strings.Split(mounts, ",")
+
+	for _, m := range mountList {
+		log.Printf("Checking free disk size of %v.", m)
+
+		out, err := exec.Command("bash", "-c", "df --output=target,pcent | grep -w "+m).Output()
+		if err != nil {
+			msg := "Could not evaluate df of mount point: " + m + ". err: " + err.Error()
+			log.Println(msg)
+			return errors.New(msg)
+		}
+
+		// Example: /gluster/fast_registry                               8%
+		num := regexp.MustCompile(`\d+%`)
+		usages := num.FindAllString(string(out), 1)
+		log.Println(m, usages)
+		if len(usages) != 1 {
+			return errors.New("Could not parse output to integer: " + string(out))
+		}
+		usageInt, err := strconv.Atoi(strings.Replace(usages[0], "%", "", 1))
+		if err != nil {
+			return errors.New("Could not parse output to integer: " + string(out))
+		}
+
+		if usageInt > okSize {
+			msg := fmt.Sprintf("Usage %% of volume %v is bigger than treshold. Is: %v%% - treshold: %v%%", m, usageInt, okSize)
+			log.Println(msg)
+			return errors.New(msg)
+		}
+	}
+
+	return nil
+}
+
+func CheckIfGlusterdIsRunning() error {
+	log.Print("Checking if glusterd is running")
+
+	out, err := exec.Command("bash", "-c", "systemctl status glusterd").Output()
+	if err != nil {
+		msg := "Could not run 'systemctl status glusterd'. err: " + err.Error()
+		log.Println(msg)
+		return errors.New(msg)
+	}
+
+	if !strings.Contains(string(out), "active (running)") {
+		return fmt.Errorf("Glusterd seems not to be running! Output: %v", string(out))
 	}
 
 	return nil

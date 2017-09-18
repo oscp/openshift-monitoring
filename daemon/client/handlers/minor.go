@@ -63,6 +63,10 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			errors = append(errors, err.Error())
 		}
 
+		if err := checks.CheckMountPointSizes(85); err != nil {
+			errors = append(errors, err.Error())
+		}
+
 		if err := checks.CheckLVPoolSizes(80); err != nil {
 			errors = append(errors, err.Error())
 		}

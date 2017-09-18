@@ -67,9 +67,13 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		isGlusterServer := os.Getenv("IS_GLUSTER_SERVER")
 
 		if isGlusterServer == "true" {
-			//if err := checks.CheckGlusterStatus(); err != nil {
-			//	errors = append(errors, err.Error())
-			//}
+			if err := checks.CheckIfGlusterdIsRunning(); err != nil {
+				errors = append(errors, err.Error())
+			}
+
+			if err := checks.CheckMountPointSizes(90); err != nil {
+				errors = append(errors, err.Error())
+			}
 
 			if err := checks.CheckLVPoolSizes(90); err != nil {
 				errors = append(errors, err.Error())
