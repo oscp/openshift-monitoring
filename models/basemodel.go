@@ -1,6 +1,6 @@
 package models
 
 type BaseModel struct {
-	Type    string
-	Message interface{}
+	Type    string      `json:"type"`
+	Message interface{} `json:"message"`
 }

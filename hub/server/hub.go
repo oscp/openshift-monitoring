@@ -87,17 +87,17 @@ func (h *Hub) Serve() {
 
 func updateUI(h *Hub) {
 	// UI cannot handle each checkresult individually, so we aggrgate and send them each second
-	tick := time.Tick(1 * time.Second)
+	tick := time.Tick(2 * time.Second)
 	go func() {
 		for {
 			select {
 			case <-tick:
 				// Update checkresults
-				h.toUi <- models.BaseModel{Type: models.CHECK_RESULTS, Message: h.checkResults}
+				h.toUi <- models.BaseModel{Type: models.CheckResults, Message: h.checkResults}
 				h.checkResults = []models.CheckResult{}
 
 				// Update deamons
-				h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
+				h.toUi <- models.BaseModel{Type: models.AllDaemons, Message: h.Daemons()}
 			}
 		}
 	}()
@@ -105,7 +105,7 @@ func updateUI(h *Hub) {
 
 func handleChecksStart(h *Hub) {
 	for {
-		var checks models.Checks = <-h.startChecks
+		var checks = <-h.startChecks
 		for _, d := range h.daemons {
 			if err := d.Client.Call("startChecks", checks, nil); err != nil {
 				log.Println("error starting checks on daemon", err)
@@ -116,7 +116,7 @@ func handleChecksStart(h *Hub) {
 
 func handleChecksStop(h *Hub) {
 	for {
-		var stop bool = <-h.stopChecks
+		var stop = <-h.stopChecks
 
 		if stop {
 			for _, d := range h.daemons {

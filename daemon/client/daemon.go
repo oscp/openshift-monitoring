@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/cenkalti/rpc2"
-	"github.com/oscp/openshift-monitoring/daemon/client/checks"
+	"github.com/oscp/openshift-monitoring-checks/checks"
 	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"net"
@@ -15,14 +15,14 @@ func StartDaemon(h string, dt string, ns string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
 	d := models.Daemon{Hostname: host,
-		Namespace:        ns,
-		DaemonType:       dt,
-		StartedChecks:    0,
-		FailedChecks:     0,
+		Namespace: ns,
+		DaemonType: dt,
+		StartedChecks: 0,
+		FailedChecks: 0,
 		SuccessfulChecks: 0}
 
 	dc := &models.DaemonClient{Daemon: d,
-		Quit:  make(chan bool),
+		Quit: make(chan bool),
 		ToHub: make(chan models.CheckResult)}
 
 	// Register on hub
@@ -38,6 +38,17 @@ func StartDaemon(h string, dt string, ns string) *rpc2.Client {
 		*reply = "ok"
 		return nil
 	})
+
+	disc := dc.Client.DisconnectNotify()
+	go func() {
+		for {
+			select {
+			case <-disc:
+				log.Println("Lost connection to host. Terminating.")
+				os.Exit(0)
+			}
+		}
+	}()
 
 	// Start handling from & to hub
 	go dc.Client.Run()
@@ -69,14 +80,14 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckMasterApis(checkConfig.MasterApiUrls)
-						HandleCheckFinished(dc, err, models.MASTER_API_CHECK)
+						HandleCheckFinished(dc, err, models.MasterApiCheck)
 					}()
 				}
 				if checkConfig.EtcdCheck && dc.Daemon.IsMaster() {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckEtcdHealth(checkConfig.EtcdIps, checkConfig.EtcdCertPath)
-						HandleCheckFinished(dc, err, models.ETCD_HEALTH)
+						HandleCheckFinished(dc, err, models.EtcdHealth)
 					}()
 				}
 			case <-tickExt:
@@ -84,14 +95,14 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckDnsNslookupOnKubernetes()
-						HandleCheckFinished(dc, err, models.DNS_NSLOOKUP_KUBERNETES)
+						HandleCheckFinished(dc, err, models.DnsNslookupKubernetes)
 					}()
 
 					if dc.Daemon.IsNode() || dc.Daemon.IsMaster() {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckDnsServiceNode()
-							HandleCheckFinished(dc, err, models.DNS_SERVICE_NODE)
+							HandleCheckFinished(dc, err, models.DnsServiceNode)
 						}()
 					}
 
@@ -99,7 +110,7 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckDnsInPod()
-							HandleCheckFinished(dc, err, models.DNS_SERVICE_POD)
+							HandleCheckFinished(dc, err, models.DnsServicePod)
 						}()
 					}
 				}
@@ -109,17 +120,17 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckPodHttpAtoB()
-							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_B)
+							HandleCheckFinished(dc, err, models.HttpPodServiceAB)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckPodHttpAtoC(false)
-							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_C)
+							HandleCheckFinished(dc, err, models.HttpPodServiceAC)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckPodHttpAtoC(true)
-							HandleCheckFinished(dc, err, models.HTTP_POD_SERVICE_A_C)
+							HandleCheckFinished(dc, err, models.HttpPodServiceAC)
 						}()
 					}
 
@@ -127,25 +138,25 @@ func startChecks(dc *models.DaemonClient, checkConfig *models.Checks) {
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckHttpService(false)
-							HandleCheckFinished(dc, err, models.HTTP_SERVICE_ABC)
+							HandleCheckFinished(dc, err, models.HttpServiceABC)
 						}()
 						go func() {
 							HandleCheckStarted(dc)
 							err := checks.CheckHttpService(true)
-							HandleCheckFinished(dc, err, models.HTTP_SERVICE_ABC)
+							HandleCheckFinished(dc, err, models.HttpServiceABC)
 						}()
 					}
 
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, false)
-						HandleCheckFinished(dc, err, models.HTTP_HAPROXY)
+						HandleCheckFinished(dc, err, models.HttpHaProxy)
 					}()
 
 					go func() {
 						HandleCheckStarted(dc)
 						err := checks.CheckHttpHaProxy(checkConfig.DaemonPublicUrl, true)
-						HandleCheckFinished(dc, err, models.HTTP_HAPROXY)
+						HandleCheckFinished(dc, err, models.HttpHaProxy)
 					}()
 				}
 			}

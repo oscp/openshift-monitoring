@@ -2,25 +2,25 @@ package models
 
 // Websocket types
 const (
-	NEW_DAEMON  = "NEW_DAEMON"
-	ALL_DAEMONS = "ALL_DAEMONS"
-	DAEMON_LEFT = "DAEMON_LEFT"
+	NewDaemon  = "NEW_DAEMON"
+	AllDaemons = "ALL_DAEMONS"
+	DaemonLeft = "DAEMON_LEFT"
 
-	CURRENT_CHECKS = "CURRENT_CHECKS"
-	START_CHECKS   = "START_CHECKS"
-	STOP_CHECKS    = "STOP_CHECKS"
-	CHECK_RESULTS  = "CHECK_RESULTS"
+	CurrentChecks = "CURRENT_CHECKS"
+	StartChecks   = "START_CHECKS"
+	StopChecks    = "STOP_CHECKS"
+	CheckResults  = "CHECK_RESULTS"
 )
 
 // Check types
 const (
-	MASTER_API_CHECK        = "MASTER_API_CHECK"
-	DNS_NSLOOKUP_KUBERNETES = "DNS_NSLOOKUP_KUBERNETES"
-	DNS_SERVICE_NODE        = "DNS_SERVICE_NODE"
-	DNS_SERVICE_POD         = "DNS_SERVICE_POD"
-	HTTP_POD_SERVICE_A_B    = "HTTP_POD_SERVICE_A_B"
-	HTTP_POD_SERVICE_A_C    = "HTTP_POD_SERVICE_A_C"
-	HTTP_HAPROXY            = "HTTP_HAPROXY"
-	HTTP_SERVICE_ABC        = "HTTP_SERVICE_ABC"
-	ETCD_HEALTH             = "ETCD_HEALTH"
+	MasterApiCheck        = "MASTER_API_CHECK"
+	DnsNslookupKubernetes = "DNS_NSLOOKUP_KUBERNETES"
+	DnsServiceNode        = "DNS_SERVICE_NODE"
+	DnsServicePod         = "DNS_SERVICE_POD"
+	HttpPodServiceAB      = "HTTP_POD_SERVICE_A_B"
+	HttpPodServiceAC      = "HTTP_POD_SERVICE_A_C"
+	HttpHaProxy           = "HTTP_HAPROXY"
+	HttpServiceABC        = "HTTP_SERVICE_ABC"
+	EtcdHealth            = "ETCD_HEALTH"
 )

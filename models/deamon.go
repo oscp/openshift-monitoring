@@ -3,12 +3,12 @@ package models
 import "github.com/cenkalti/rpc2"
 
 type Daemon struct {
-	Hostname         string
-	Namespace        string
-	DaemonType       string
-	StartedChecks    int
-	SuccessfulChecks int
-	FailedChecks     int
+	Hostname         string `json:"hostname"`
+	Namespace        string `json:"namespace"`
+	DaemonType       string `json:"daemonType"`
+	StartedChecks    int    `json:"startedChecks"`
+	SuccessfulChecks int    `json:"successfulChecks"`
+	FailedChecks     int    `json:"failedChecks"`
 }
 
 func (d *Daemon) IsMaster() bool {

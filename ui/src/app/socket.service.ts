@@ -4,68 +4,68 @@ import {NotificationsService} from "angular2-notifications";
 
 @Injectable()
 export class SocketService {
-    public websocket: Subject<any>;
+  public websocket: Subject<any>;
 
-    constructor(private notificationService: NotificationsService) {
-        this.connectToUI();
-    }
+  constructor(private notificationService: NotificationsService) {
+    this.connectToUI();
+  }
 
-    private reconnectWebsocket() {
-        let that = this;
-        this.notificationService.error("Error on websocket", "Error on websocket. Reconnecting...");
-        setTimeout(
-            () => {
-                console.log('reconnecting websocket');
-                that.websocket = undefined;
-                that.connectToUI();
-            }
-            , 1000
-        );
-    }
+  private reconnectWebsocket() {
+    let that = this;
+    this.notificationService.error("Error on websocket", "Error on websocket. Reconnecting...");
+    setTimeout(
+      () => {
+        console.log('reconnecting websocket');
+        that.websocket = undefined;
+        that.connectToUI();
+      }
+      , 1000
+    );
+  }
 
-    private connectToUI() {
-        let that = this;
-        let hubUrl = window.location.origin === 'http://localhost:4200' ? 'http://localhost:8080/ui' : window.location.origin + '/ui';
-        let socket = new WebSocket(hubUrl.replace('http://', 'ws://'));
-        let observable = Observable.create(
-            (observer: Observer<MessageEvent>) => {
-                socket.onmessage = observer.next.bind(observer);
-                socket.onerror = () => {
-                    that.reconnectWebsocket();
-                }
-                socket.onclose = () => {
-                    that.reconnectWebsocket();
-                };
-                return socket.close.bind(socket);
-            }
-        ).share();
-
-        let observer = {
-            next: (data: Object) => {
-                that.waitForSocketConnection(socket, () => {
-                    socket.send(JSON.stringify(data));
-                });
-            }
+  private connectToUI() {
+    let that = this;
+    let hubUrl = window.location.origin === 'http://localhost:4200' ? 'http://localhost:8080/ui' : window.location.origin + '/ui';
+    let socket = new WebSocket(hubUrl.replace('http://', 'ws://'));
+    let observable = Observable.create(
+      (observer: Observer<MessageEvent>) => {
+        socket.onmessage = observer.next.bind(observer);
+        socket.onerror = () => {
+          that.reconnectWebsocket();
         };
+        socket.onclose = () => {
+          that.reconnectWebsocket();
+        };
+        return socket.close.bind(socket);
+      }
+    ).share();
 
-        this.websocket = Subject.create(observer, observable);
-    }
+    let observer = {
+      next: (data: Object) => {
+        that.waitForSocketConnection(socket, () => {
+          socket.send(JSON.stringify(data));
+        });
+      }
+    };
 
-    private waitForSocketConnection(socket, callback) {
-        const that = this;
-        setTimeout(
-            function () {
-                if (socket.readyState === 1) {
-                    if (callback != null) {
-                        callback();
-                    }
-                    return;
+    this.websocket = Subject.create(observer, observable);
+  }
 
-                } else {
-                    console.log('wait for connection...');
-                    that.waitForSocketConnection(socket, callback);
-                }
+  private waitForSocketConnection(socket, callback) {
+    const that = this;
+    setTimeout(
+      function () {
+        if (socket.readyState === 1) {
+          if (callback != null) {
+            callback();
+          }
+          return;
 
-            }, 5); // wait 5 milisecond for the connection...
-    }
+        } else {
+          console.log('wait for connection...');
+          that.waitForSocketConnection(socket, callback);
+        }
+
+      }, 5); // wait 5 milisecond for the connection...
+  }
 }
