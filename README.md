@@ -20,24 +20,24 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 
 # Checks
 The following checks are run:
-**TYPE**|**CHECK**| 
-|--------|----------------------------------| 
-| MASTER | Master-API check                 | 
-| MASTER | ETCD health check                | 
-| MASTER | DNS via kubernetes               | 
-| MASTER | DNS via dnsmasq                  | 
-| MASTER | HTTP check via service           | 
-| MASTER | HTTP check via ha-proxy          | 
-| NODE   | Master-API check                 | 
-| NODE   | DNS via kubernetes               | 
-| NODE   | DNS via dnsmasq                  | 
-| NODE   | HTTP check via service           | 
-| NODE   | HTTP check via ha-proxy          | 
-| POD    | Master-API check                 | 
-| POD    | DNS via kubernetes               | 
-| POD    | DNS via Node > dnsmasq           | 
-| POD    | SDN over http via service check  | 
-| POD    | SDN over http via ha-proxy check | 
+**TYPE**|**CHECK**
+-----|-----|-----
+| MASTER | Master-API check                 
+| MASTER | ETCD health check                
+| MASTER | DNS via kubernetes                
+| MASTER | DNS via dnsmasq                   
+| MASTER | HTTP check via service            
+| MASTER | HTTP check via ha-proxy           
+| NODE   | Master-API check                  
+| NODE   | DNS via kubernetes                
+| NODE   | DNS via dnsmasq                   
+| NODE   | HTTP check via service           
+| NODE   | HTTP check via ha-proxy           
+| POD    | Master-API check                  
+| POD    | DNS via kubernetes                
+| POD    | DNS via Node > dnsmasq            
+| POD    | SDN over http via service check   
+| POD    | SDN over http via ha-proxy check  
 
 
 
