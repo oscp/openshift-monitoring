@@ -19,7 +19,6 @@ Furthermore the daemon now also has a standalone mode. It runs checks based on a
 - POD = Runs inside a docker container
 
 # Checks
-The following checks are run:
 **TYPE**|**CHECK**
 -----|-----|-----
 | MASTER | Master-API check                 
