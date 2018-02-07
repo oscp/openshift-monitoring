@@ -1,17 +1,21 @@
-<h4>Connected Daemons</h4>
-<table class='table table-striped table-condensed'>
-    <thead class='thead-inverse'>
+<div class="content">
+  <h4>Connected Daemons</h4>
+  <table class='table is-striped is-narrow'>
+    <thead>
     <tr>
-        <th>Hostname</th>
-        <th>Type</th>
-        <th>Checks started/ok/failed</th>
+      <th>Hostname</th>
+      <th>Type</th>
+      <th>Checks started/ok/failed</th>
     </tr>
     </thead>
     <tbody>
     <tr *ngFor='let d of daemons'>
-        <td>{{d.Hostname}}</td>
-        <td>{{d.DaemonType}}</td>
-        <td><i class="fa fa-circle-o-notch"></i> {{d.StartedChecks}} <i class="fa fa-check-circle"></i> {{d.SuccessfulChecks}} <i class="fa fa-times-circle"></i> {{d.FailedChecks}}</td>
+      <td>{{d.hostname}}</td>
+      <td>{{d.daemonType}}</td>
+      <td><i class="fa fa-circle-notch"></i> {{d.startedChecks}} <i
+        class="fa fa-check-circle"></i> {{d.successfulChecks}} <i class="fa fa-times-circle"></i> {{d.failedChecks}}
+      </td>
     </tr>
     </tbody>
-</table>
+  </table>
+</div>

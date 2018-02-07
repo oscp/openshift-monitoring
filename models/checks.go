@@ -1,14 +1,14 @@
 package models
 
 type Checks struct {
-	IsRunning       bool
-	CheckInterval   int
-	MasterApiCheck  bool
-	MasterApiUrls   string
-	DnsCheck        bool
-	HttpChecks      bool
-	DaemonPublicUrl string
-	EtcdCheck       bool
-	EtcdIps         string
-	EtcdCertPath    string
+	IsRunning       bool   `json:"isRunning"`
+	CheckInterval   int    `json:"checkInterval"`
+	MasterApiCheck  bool   `json:"masterApiChecks"`
+	MasterApiUrls   string `json:"masterApiUrls"`
+	DnsCheck        bool   `json:"dnsCheck"`
+	HttpChecks      bool   `json:"httpChecks"`
+	DaemonPublicUrl string `json:"daemonPublicUrl"`
+	EtcdCheck       bool   `json:"etcdCheck"`
+	EtcdIps         string `json:"etcdIps"`
+	EtcdCertPath    string `json:"etcdCertPath"`
 }

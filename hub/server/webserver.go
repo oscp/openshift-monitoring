@@ -28,7 +28,7 @@ func OnUISocket(h *Hub, w http.ResponseWriter, r *http.Request) {
 
 func handleToUI(h *Hub, c *websocket.Conn) {
 	for {
-		var msg models.BaseModel = <-h.toUi
+		var msg = <-h.toUi
 
 		err := c.WriteJSON(msg)
 		if err != nil {
@@ -51,17 +51,17 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 
 		var res interface{}
 		switch msg.Type {
-		case models.ALL_DAEMONS:
-			res = models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
+		case models.AllDaemons:
+			res = models.BaseModel{Type: models.AllDaemons, Message: h.Daemons()}
 			break
-		case models.START_CHECKS:
+		case models.StartChecks:
 			res = startChecks(h, msg.Message)
 			break
-		case models.STOP_CHECKS:
+		case models.StopChecks:
 			res = stopChecks(h)
 			break
-		case models.CURRENT_CHECKS:
-			res = models.BaseModel{Type: models.CURRENT_CHECKS, Message: h.currentChecks}
+		case models.CurrentChecks:
+			res = models.BaseModel{Type: models.CurrentChecks, Message: h.currentChecks}
 		}
 
 		err = c.WriteJSON(res)

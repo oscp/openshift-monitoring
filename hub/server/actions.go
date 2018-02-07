@@ -11,7 +11,7 @@ func daemonLeave(h *Hub, host string) {
 	log.Println("daemon left: ", host)
 	delete(h.daemons, host)
 
-	h.toUi <- models.BaseModel{Type: models.DAEMON_LEFT, Message: host}
+	h.toUi <- models.BaseModel{Type: models.DaemonLeft, Message: host}
 }
 
 func daemonJoin(h *Hub, d *models.Daemon, c *rpc2.Client) {
@@ -26,7 +26,7 @@ func daemonJoin(h *Hub, d *models.Daemon, c *rpc2.Client) {
 		}
 	}
 
-	h.toUi <- models.BaseModel{Type: models.NEW_DAEMON, Message: d.Hostname}
+	h.toUi <- models.BaseModel{Type: models.NewDaemon, Message: d.Hostname}
 }
 
 func startChecks(h *Hub, msg interface{}) models.BaseModel {
@@ -38,7 +38,7 @@ func startChecks(h *Hub, msg interface{}) models.BaseModel {
 	h.startChecks <- checks
 
 	// Return ok to UI
-	return models.BaseModel{Type: models.CURRENT_CHECKS, Message: checks}
+	return models.BaseModel{Type: models.CurrentChecks, Message: checks}
 }
 
 func stopChecks(h *Hub) models.BaseModel {
@@ -47,7 +47,7 @@ func stopChecks(h *Hub) models.BaseModel {
 	h.stopChecks <- true
 
 	// Return ok to UI
-	return models.BaseModel{Type: models.CURRENT_CHECKS, Message: h.currentChecks}
+	return models.BaseModel{Type: models.CurrentChecks, Message: h.currentChecks}
 }
 
 func getChecksStruct(msg interface{}) models.Checks {

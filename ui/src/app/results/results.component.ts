@@ -1,135 +1,109 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {NotificationsService} from "angular2-notifications";
+import {Component, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {SocketService} from "../socket.service";
 import {SocketType} from "../shared/socket.types";
 import {BaseChartDirective} from "ng2-charts";
 
 @Component({
-    selector: 'app-results',
-    templateUrl: 'results.component.html'
+  selector: 'app-results',
+  templateUrl: 'results.component.html'
 })
 export class ResultsComponent implements OnInit {
-    // Dognut charts
-    public dognutChartType: string = 'doughnut';
-    public dognutChartOptions: any = {
-        legend: {
-            display: false
+  // Dognut charts
+  public dognutChartType: string = 'doughnut';
+  public dognutChartOptions: any = {
+    legend: {
+      display: false
+    }
+  };
+
+  public checkOverviewLabels: string[] = ['Started', 'Finished'];
+  public checkOverviewData: number[] = [0, 0];
+
+  public checkTypeLabels: string[] = ["MASTER_API_CHECK", "DNS_NSLOOKUP_KUBERNETES", "DNS_SERVICE_NODE",
+    "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_SERVICE_ABC", "HTTP_HAPROXY", "ETCD_HEALTH"];
+  public errorData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  public successData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  public failures: Array<any> = [];
+
+  // Line Chart
+  @ViewChild(BaseChartDirective) chart: BaseChartDirective;
+  public lineChartType: string = 'line';
+  public checkLineData: any = [
+    {data: [], label: 'Successful checks'},
+    {data: [], label: 'Failed checks'}
+  ];
+  public checkLineLabels: Array<any> = [];
+  public checkLineLegend = true;
+  public checkLineOptions: any = {
+    responsive: true
+  };
+
+  constructor(private socketService: SocketService) {
+  }
+
+  ngOnInit() {
+    this.socketService.websocket.subscribe(
+      msg => {
+        let data = JSON.parse(msg.data);
+        switch (data.type) {
+          case SocketType.CHECK_RESULTS:
+            this.handleResults(data.message);
+            break;
         }
-    };
-    public checkTypeLabels: string[] = ["MASTER_API_CHECK", "DNS_NSLOOKUP_KUBERNETES", "DNS_SERVICE_NODE",
-        "DNS_SERVICE_POD", "HTTP_POD_SERVICE_A_B", "HTTP_POD_SERVICE_A_C", "HTTP_SERVICE_ABC", "HTTP_HAPROXY", "ETCD_HEALTH"];
+      }
+    );
+  }
 
-    public errorData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    public successData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    public errors: Array<any> = [];
+  private handleResults(res) {
+    // Failures
+    this.failures = res.failures.slice().reverse();
 
-    public checkOverviewLabels: string[] = ['Started', 'Finished'];
-    public checkOverviewData: number[] = [0, 0];
+    // Started & finished checks
+    this.checkOverviewData[0] = res.startedChecks;
+    this.checkOverviewData[1] = res.finishedChecks;
+    this.checkOverviewData = this.checkOverviewData.slice();
 
-    // Line Chart
-    @ViewChild('linechart') chart: BaseChartDirective;
-    public lineChartType: string = 'line';
-    public checkLineData: any = [
-        {data: [], label: 'Successful checks'},
-        {data: [], label: 'Failed checks'}
-    ];
-    public checkLineLabels: Array<any> = [];
-    public checkLineLegend: boolean = true;
-    public checkLineOptions: any = {
-        responsive: true
-    };
-    private successCount: number = 0;
-    private errorCount: number = 0;
+    // Success / failed by type
+    this.handleFailedByType(res.failedChecksByType);
+    this.handleSuccesfulByType(res.successfulChecksByType);
 
-    constructor(private socketService: SocketService, private notificationService: NotificationsService) {
+    // Handle Line-Charts
+    this.handleLineResult(res);
+  }
+
+  private handleLineResult(res: any) {
+    this.checkLineLabels = [];
+    this.checkLineData[0].data = [];
+    this.checkLineData[1].data = [];
+
+    for (let [k, v] of Object.entries(res.ticks)) {
+      this.checkLineLabels.push(k);
+      this.checkLineData[0].data.push(v.successfulChecks);
+      this.checkLineData[1].data.push(v.failedChecks);
+    }
+    this.chart.chart.update();
+  }
+
+  private handleFailedByType(res: any) {
+    for (let [k, v] of Object.entries(res)) {
+      // Find index for key
+      let idx = this.checkTypeLabels.findIndex(m => m === k);
+      this.errorData[idx] = v;
     }
 
-    ngOnInit() {
-        this.socketService.websocket.subscribe(
-            msg => {
-                let data = JSON.parse(msg.data);
-                switch (data.Type) {
-                    case SocketType.CHECK_RESULTS:
-                        if (data.Message.length > 0) {
-                            this.handleResults(data.Message);
-                        }
-                        break;
-                    case SocketType.ALL_DAEMONS:
-                        this.handleDaemonUpdate(data.Message);
-                        break;
-                }
-            }
-        );
+    // Enforce refresh
+    this.errorData = this.errorData.slice();
+  }
+
+  private handleSuccesfulByType(res: any) {
+    for (let [k, v] of Object.entries(res)) {
+      // Find index for key
+      let idx = this.checkTypeLabels.findIndex(m => m === k);
+      this.successData[idx] = v;
     }
 
-    private handleDaemonUpdate(daemons) {
-        this.checkOverviewData[0] = 0;
-        this.checkOverviewData[1] = 0;
-
-        daemons.forEach(d => {
-            this.checkOverviewData[0] += d.StartedChecks;
-            this.checkOverviewData[1] += d.FailedChecks + d.SuccessfulChecks;
-        });
-
-        // Force UI update
-        this.checkOverviewData = this.checkOverviewData.slice();
-    }
-
-    private handleResults(msg) {
-        msg.forEach(m => {
-            // Handle specific by result
-            if (m.IsOk) {
-                this.handleSuccessResult(m);
-            } else {
-                this.handleErrorResult(m);
-            }
-        });
-
-        // Handle Line-Charts
-        this.handleLineResult();
-    }
-
-    private handleLineResult() {
-        let now = new Date();
-        this.checkLineLabels.push(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`);
-        this.checkLineData[0].data.push(this.successCount);
-        this.checkLineData[1].data.push(this.errorCount);
-
-        // Cleanup counters
-        this.successCount = 0;
-        this.errorCount = 0;
-
-        // Update UI because of bug in chartjs:
-        this.chart.labels = this.checkLineLabels.slice();
-        this.checkLineData = this.checkLineData.slice();
-    }
-
-    private handleErrorResult(msg) {
-        this.errorCount++;
-        let idx = this.checkTypeLabels.findIndex(m => m == msg.Type);
-
-        if (idx > -1) {
-            this.errorData[idx] += 1;
-        }
-
-        // Enforce refresh
-        this.errorData = this.errorData.slice();
-
-        // Tell the user about it
-        msg.Date = new Date();
-        this.errors.push(msg);
-        this.notificationService.error(`check ${msg.Type} failed.`, msg.Message);
-    }
-
-    private handleSuccessResult(msg) {
-        this.successCount++;
-        let idx = this.checkTypeLabels.findIndex(m => m == msg.Type);
-
-        if (idx > -1) {
-            this.successData[idx] += 1;
-        }
-
-        // Enforce refresh
-        this.successData = this.successData.slice();
-    }
+    // Enforce refresh
+    this.successData = this.successData.slice();
+  }
 }

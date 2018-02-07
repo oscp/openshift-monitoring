@@ -5,14 +5,20 @@ import (
 	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"os"
+	"time"
 )
 
 func registerOnHub(h string, dc *models.DaemonClient) {
 	log.Println("registring on the hub:", h)
 	var rep string
-	err := dc.Client.Call("register", dc.Daemon, &rep)
-	if err != nil {
-		log.Fatal("error registring on hub: ", err)
+	for {
+		err := dc.Client.Call("register", dc.Daemon, &rep)
+		if err != nil {
+			log.Println("error registring on hub. Will try again in 5 seconds. Error: ", err)
+			time.Sleep(5 * time.Second)
+		} else {
+			break
+		}
 	}
 	if rep != "ok" {
 		log.Fatalf("expected the hub to answer with ok. he did with: %+v", rep)
@@ -61,7 +67,7 @@ func updateDaemonOnHub(dc *models.DaemonClient) {
 
 func handleCheckResultToHub(dc *models.DaemonClient) {
 	for {
-		var r models.CheckResult = <-dc.ToHub
+		var r = <-dc.ToHub
 		r.Hostname = dc.Daemon.Hostname
 
 		if err := dc.Client.Call("checkResult", r, nil); err != nil {

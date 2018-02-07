@@ -12,22 +12,33 @@ type Hub struct {
 	hubAddr       string
 	daemons       map[string]*models.DaemonClient
 	currentChecks models.Checks
-	checkResults  []models.CheckResult
+	result        models.Results
 	startChecks   chan models.Checks
 	stopChecks    chan bool
 	toUi          chan models.BaseModel
+	updateStats   bool
+
+	// Temp values between ticks
+	successfulSinceTick int
+	failedSinceTick     int
 }
 
 func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string,
 	etcdIps string, etcdCertPath string) *Hub {
 
 	return &Hub{
-		hubAddr:      hubAddr,
-		daemons:      make(map[string]*models.DaemonClient),
-		startChecks:  make(chan models.Checks),
-		stopChecks:   make(chan bool),
-		toUi:         make(chan models.BaseModel, 1000),
-		checkResults: []models.CheckResult{},
+		hubAddr:     hubAddr,
+		daemons:     make(map[string]*models.DaemonClient),
+		startChecks: make(chan models.Checks),
+		stopChecks:  make(chan bool),
+		toUi:        make(chan models.BaseModel, 1000),
+		updateStats: false,
+		result: models.Results{
+			SuccessfulChecksByType: make(map[string]int),
+			FailedChecksByType:     make(map[string]int),
+			Ticks:                  []models.Tick{},
+			Errors:                 []models.Failures{},
+		},
 		currentChecks: models.Checks{
 			CheckInterval:   5000,
 			MasterApiUrls:   masterApiUrls,
@@ -51,10 +62,48 @@ func (h *Hub) Daemons() []models.Daemon {
 }
 
 func (h *Hub) Serve() {
-	go handleChecksStart(h)
-	go handleChecksStop(h)
-	go updateUI(h)
+	statsTicker := time.NewTicker(1 * time.Second)
+	toUITicker := time.NewTicker(1 * time.Second)
 
+	// Handle stats
+	go func() {
+		for {
+			select {
+
+			case <-toUITicker.C:
+				// Update checkresults & daemons
+				h.toUi <- models.BaseModel{Type: models.CheckResults, Message: h.result}
+				h.toUi <- models.BaseModel{Type: models.AllDaemons, Message: h.Daemons()}
+				break
+
+			case <-statsTicker.C:
+				h.aggregateStats()
+				break
+
+			case checks := <-h.startChecks:
+				h.updateStats = true
+				for _, d := range h.daemons {
+					if err := d.Client.Call("startChecks", checks, nil); err != nil {
+						log.Println("error starting checks on daemon", err)
+					}
+				}
+				break
+
+			case stop := <-h.stopChecks:
+				if stop {
+					h.updateStats = false
+					for _, d := range h.daemons {
+						if err := d.Client.Call("stopChecks", stop, nil); err != nil {
+							log.Println("error stopping checks on daemon", err)
+						}
+					}
+				}
+				break
+			}
+		}
+	}()
+
+	// Create rpc server for communication with clients
 	srv := rpc2.NewServer()
 	srv.Handle("register", func(c *rpc2.Client, d *models.Daemon, reply *string) error {
 		// Save client for talking to him later
@@ -74,7 +123,7 @@ func (h *Hub) Serve() {
 		return nil
 	})
 	srv.Handle("checkResult", func(cl *rpc2.Client, r *models.CheckResult, reply *string) error {
-		h.checkResults = append(h.checkResults, *r)
+		go h.handleCheckResult(r)
 		*reply = "ok"
 		return nil
 	})
@@ -85,45 +134,44 @@ func (h *Hub) Serve() {
 	}
 }
 
-func updateUI(h *Hub) {
-	// UI cannot handle each checkresult individually, so we aggrgate and send them each second
-	tick := time.Tick(1 * time.Second)
-	go func() {
-		for {
-			select {
-			case <-tick:
-				// Update checkresults
-				h.toUi <- models.BaseModel{Type: models.CHECK_RESULTS, Message: h.checkResults}
-				h.checkResults = []models.CheckResult{}
+func (h *Hub) handleCheckResult(r *models.CheckResult) {
+	// Write values from check result to temp values
+	if r.IsOk {
+		h.result.SuccessfulChecks++
+		h.result.SuccessfulChecksByType[r.Type]++
+		h.successfulSinceTick++
+	} else {
+		h.result.FailedChecks++
+		h.result.FailedChecksByType[r.Type]++
+		h.failedSinceTick++
 
-				// Update deamons
-				h.toUi <- models.BaseModel{Type: models.ALL_DAEMONS, Message: h.Daemons()}
-			}
-		}
-	}()
-}
-
-func handleChecksStart(h *Hub) {
-	for {
-		var checks models.Checks = <-h.startChecks
-		for _, d := range h.daemons {
-			if err := d.Client.Call("startChecks", checks, nil); err != nil {
-				log.Println("error starting checks on daemon", err)
-			}
-		}
+		h.result.Errors = append(h.result.Errors, models.Failures{
+			Date:     time.Now(),
+			Type:     r.Type,
+			Hostname: r.Hostname,
+			Message:  r.Message,
+		})
 	}
 }
 
-func handleChecksStop(h *Hub) {
-	for {
-		var stop bool = <-h.stopChecks
+func (h *Hub) aggregateStats() {
+	// Update global fields
+	h.result.StartedChecks = 0
+	h.result.FinishedChecks = 0
+	for _, d := range h.daemons {
+		h.result.StartedChecks += d.Daemon.StartedChecks
+		h.result.FinishedChecks += d.Daemon.SuccessfulChecks + d.Daemon.FailedChecks
+	}
 
-		if stop {
-			for _, d := range h.daemons {
-				if err := d.Client.Call("stopChecks", stop, nil); err != nil {
-					log.Println("error stopping checks on daemon", err)
-				}
-			}
-		}
+	if h.failedSinceTick > 0 || h.successfulSinceTick > 0 {
+		// Create a new tick out of temp values since last tick
+		h.result.Ticks = append(h.result.Ticks, models.Tick{
+			FailedChecks:     h.failedSinceTick,
+			SuccessfulChecks: h.successfulSinceTick,
+		})
+
+		// Prepare for next tick
+		h.failedSinceTick = 0
+		h.successfulSinceTick = 0
 	}
 }
