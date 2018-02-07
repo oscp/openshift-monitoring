@@ -57,6 +57,7 @@
         </button>
         <button class="button is-warning" (click)="stopChecks()" *ngIf="checks.isRunning">Stop Checks
         </button>
+        <button class="button is-info" (click)="resetStats()">Reset Stats</button>
       </div>
       <div class="column">
         <div class="spinner" *ngIf="checks.isRunning">

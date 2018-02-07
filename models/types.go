@@ -10,6 +10,7 @@ const (
 	StartChecks   = "START_CHECKS"
 	StopChecks    = "STOP_CHECKS"
 	CheckResults  = "CHECK_RESULTS"
+	ResetStats    = "RESET_STATS"
 )
 
 // Check types

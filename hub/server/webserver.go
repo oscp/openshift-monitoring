@@ -55,10 +55,14 @@ func handleFromUI(h *Hub, c *websocket.Conn) {
 			res = models.BaseModel{Type: models.AllDaemons, Message: h.Daemons()}
 			break
 		case models.StartChecks:
-			res = startChecks(h, msg.Message)
+			res = h.StartChecks(msg.Message)
 			break
 		case models.StopChecks:
-			res = stopChecks(h)
+			res = h.StopChecks()
+			break
+		case models.ResetStats:
+			h.ResetStats <- true
+			res = models.BaseModel{Type: models.AllDaemons, Message: h.Daemons()}
 			break
 		case models.CurrentChecks:
 			res = models.BaseModel{Type: models.CurrentChecks, Message: h.currentChecks}

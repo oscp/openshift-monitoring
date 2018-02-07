@@ -6,5 +6,6 @@ export class SocketType {
     static CURRENT_CHECKS = 'CURRENT_CHECKS';
     static START_CHECKS = 'START_CHECKS';
     static STOP_CHECKS = 'STOP_CHECKS';
+    static RESET_STATS = 'RESET_STATS';
     static CHECK_RESULTS = 'CHECK_RESULTS';
 }

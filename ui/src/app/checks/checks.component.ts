@@ -34,6 +34,10 @@ export class ChecksComponent implements OnInit {
     this.socketService.websocket.next({type: SocketType.STOP_CHECKS});
   }
 
+  public resetStats() {
+    this.socketService.websocket.next({type: SocketType.RESET_STATS});
+  }
+
   private getCurrentChecks() {
     this.socketService.websocket.next({Type: SocketType.CURRENT_CHECKS});
   }

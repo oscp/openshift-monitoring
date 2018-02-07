@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"time"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Hub struct {
@@ -15,6 +16,7 @@ type Hub struct {
 	result        models.Results
 	startChecks   chan models.Checks
 	stopChecks    chan bool
+	ResetStats    chan bool
 	toUi          chan models.BaseModel
 	updateStats   bool
 
@@ -31,6 +33,7 @@ func NewHub(hubAddr string, masterApiUrls string, daemonPublicUrl string,
 		daemons:     make(map[string]*models.DaemonClient),
 		startChecks: make(chan models.Checks),
 		stopChecks:  make(chan bool),
+		ResetStats:  make(chan bool),
 		toUi:        make(chan models.BaseModel, 1000),
 		updateStats: false,
 		result: models.Results{
@@ -70,6 +73,10 @@ func (h *Hub) Serve() {
 		for {
 			select {
 
+			case <-h.ResetStats:
+				h.resetStats()
+				break
+
 			case <-toUITicker.C:
 				// Update checkresults & daemons
 				h.toUi <- models.BaseModel{Type: models.CheckResults, Message: h.result}
@@ -106,14 +113,12 @@ func (h *Hub) Serve() {
 	// Create rpc server for communication with clients
 	srv := rpc2.NewServer()
 	srv.Handle("register", func(c *rpc2.Client, d *models.Daemon, reply *string) error {
-		// Save client for talking to him later
-		daemonJoin(h, d, c)
+		h.AddDaemon(d, c)
 		*reply = "ok"
 		return nil
 	})
 	srv.Handle("unregister", func(cl *rpc2.Client, host *string, reply *string) error {
-		daemonLeave(h, *host)
-
+		h.RemoveDaemon(*host)
 		*reply = "ok"
 		return nil
 	})
@@ -132,6 +137,58 @@ func (h *Hub) Serve() {
 	if err != nil {
 		log.Fatalf("Cannot start rpc2 server: %s", err)
 	}
+}
+
+func (h *Hub) RemoveDaemon(host string) {
+	log.Println("daemon left: ", host)
+	delete(h.daemons, host)
+
+	h.toUi <- models.BaseModel{Type: models.DaemonLeft, Message: host}
+}
+
+func (h *Hub) AddDaemon(d *models.Daemon, c *rpc2.Client) {
+	log.Println("new daemon joined:", d)
+
+	h.daemons[d.Hostname] = &models.DaemonClient{Client: c, Daemon: *d}
+
+	if h.currentChecks.IsRunning {
+		// Tell the new daemon to join the checks
+		if err := c.Call("startChecks", h.currentChecks, nil); err != nil {
+			log.Println("error starting checks on newly joined daemon", err)
+		}
+	}
+
+	h.toUi <- models.BaseModel{Type: models.NewDaemon, Message: d.Hostname}
+}
+
+func (h *Hub) StopChecks() models.BaseModel {
+	// Save current state & tell daemons
+	h.currentChecks.IsRunning = false
+	h.stopChecks <- true
+
+	// Return ok to UI
+	return models.BaseModel{Type: models.CurrentChecks, Message: h.currentChecks}
+}
+
+func (h *Hub) StartChecks(msg interface{}) models.BaseModel {
+	checks := getChecksStruct(msg)
+
+	// Save current state & tell daemons
+	checks.IsRunning = true
+	h.currentChecks = checks
+	h.startChecks <- checks
+
+	// Return ok to UI
+	return models.BaseModel{Type: models.CurrentChecks, Message: checks}
+}
+
+func getChecksStruct(msg interface{}) models.Checks {
+	var checks models.Checks
+	err := mapstructure.Decode(msg, &checks)
+	if err != nil {
+		log.Println("error decoding checks", err)
+	}
+	return checks
 }
 
 func (h *Hub) handleCheckResult(r *models.CheckResult) {
@@ -173,5 +230,21 @@ func (h *Hub) aggregateStats() {
 		// Prepare for next tick
 		h.failedSinceTick = 0
 		h.successfulSinceTick = 0
+	}
+}
+
+func (h *Hub) resetStats() {
+	log.Println("resetting stats and current results.")
+	h.result = models.Results{
+		SuccessfulChecksByType: make(map[string]int),
+		FailedChecksByType:     make(map[string]int),
+		Ticks:                  []models.Tick{},
+		Errors:                 []models.Failures{},
+	}
+
+	for _, d := range h.daemons {
+		d.Daemon.SuccessfulChecks = 0
+		d.Daemon.FailedChecks = 0
+		d.Daemon.StartedChecks = 0
 	}
 }
