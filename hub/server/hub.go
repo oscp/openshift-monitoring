@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-const maxTicks = 120
-
 type Hub struct {
 	hubAddr       string
 	daemons       map[string]*models.DaemonClient
