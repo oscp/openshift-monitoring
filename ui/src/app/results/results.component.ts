@@ -73,16 +73,16 @@ export class ResultsComponent implements OnInit {
   }
 
   private handleLineResult(res: any) {
-    this.checkLineLabels = [];
-    this.checkLineData[0].data = [];
-    this.checkLineData[1].data = [];
-
     for (let [k, v] of Object.entries(res.ticks)) {
-      this.checkLineLabels.push(k);
-      this.checkLineData[0].data.push(v.successfulChecks);
-      this.checkLineData[1].data.push(v.failedChecks);
+      if (!this.checkLineLabels.includes(k)) {
+        this.checkLineLabels.push(k);
+        this.checkLineData[0].data.push(v.successfulChecks);
+        this.checkLineData[1].data.push(v.failedChecks);
+      }
     }
-    this.chart.chart.update();
+    // Update UI because of bug in chartjs:
+    this.chart.labels = this.checkLineLabels.slice();
+    this.checkLineData = this.checkLineData.slice();
   }
 
   private handleFailedByType(res: any) {
