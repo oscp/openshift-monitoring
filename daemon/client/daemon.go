@@ -15,14 +15,14 @@ func StartDaemon(h string, dt string, ns string) *rpc2.Client {
 	// Local state
 	host, _ := os.Hostname()
 	d := models.Daemon{Hostname: host,
-		Namespace: ns,
-		DaemonType: dt,
-		StartedChecks: 0,
-		FailedChecks: 0,
+		Namespace:        ns,
+		DaemonType:       dt,
+		StartedChecks:    0,
+		FailedChecks:     0,
 		SuccessfulChecks: 0}
 
 	dc := &models.DaemonClient{Daemon: d,
-		Quit: make(chan bool),
+		Quit:  make(chan bool),
 		ToHub: make(chan models.CheckResult)}
 
 	// Register on hub

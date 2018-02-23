@@ -1,11 +1,11 @@
 package client
 
 import (
-	"log"
-	"net/http"
 	"io"
-	"time"
+	"log"
 	"math/rand"
+	"net/http"
+	"time"
 )
 
 func RunWebserver() {

@@ -2,11 +2,11 @@ package server
 
 import (
 	"github.com/cenkalti/rpc2"
+	"github.com/mitchellh/mapstructure"
 	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"net"
 	"time"
-	"github.com/mitchellh/mapstructure"
 )
 
 type Hub struct {
