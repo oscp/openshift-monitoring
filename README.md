@@ -110,6 +110,9 @@ ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
 PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
 IS\_GLUSTER\_SERVER|STORAGE|Boolean value of the node is a gluster server|true/false
 MOUNTPOINTS\_TO\_CHECK|A list of mount points where free size should be checked|/gluster/registry/,/gluster/xxx
+CHECK\_CERTIFICATE\_URLS|A list of urls to check for validity of certificate|https://master-ip:8443
+CHECK\_CERTIFICATE\_PATHS|A list of paths to check for validity of certificates. Filter is *.crt|/etc/origin/master,/etc/origin/node
+
 
 # Installation
 ### OpenShift
