@@ -24,12 +24,13 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	certPaths := os.Getenv("CHECK_CERTIFICATE_PATHS")
-	if len(certPaths) == 0 {
-		log.Fatal("env variables 'CHECK_CERTIFICATE_PATHS' must be specified")
-	}
-
 	if daemonType == "MASTER" || daemonType == "NODE" {
+		certPaths := os.Getenv("CHECK_CERTIFICATE_PATHS")
+
+		if len(certPaths) == 0 {
+			log.Fatal("env variables 'CHECK_CERTIFICATE_PATHS' must be specified")
+		}
+
 		if err := checks.CheckFileSslCertificates(strings.Split(certPaths, ","), 30); err != nil {
 			errors = append(errors, err.Error())
 		}
