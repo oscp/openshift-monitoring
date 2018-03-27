@@ -7,7 +7,6 @@ COPY . /go/src/github.com/oscp/openshift-monitoring/
 RUN go get github.com/cenkalti/rpc2 \
   && go get github.com/gorilla/websocket \
   && go get github.com/mitchellh/mapstructure \
-  && go get github.com/oscp/openshift-monitoring-checks/checks \
   && go install -v
 
 # Install necessary tools

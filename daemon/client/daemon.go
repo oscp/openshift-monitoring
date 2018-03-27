@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/cenkalti/rpc2"
-	"github.com/oscp/openshift-monitoring-checks/checks"
+	"github.com/oscp/openshift-monitoring/daemon/client/checks"
 	"github.com/oscp/openshift-monitoring/models"
 	"log"
 	"net"
