@@ -10,6 +10,7 @@ install:
 - go get github.com/cenkalti/rpc2
 - go get github.com/mitchellh/mapstructure
 - go get github.com/gorilla/websocket
+- go get gopkg.in/yaml.v2
 
 script:
   - mkdir -p dist/static
