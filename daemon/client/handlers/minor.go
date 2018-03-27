@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
@@ -20,12 +21,25 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
+	certPaths := os.Getenv("CHECK_CERTIFICATE_PATHS")
+	if len(certPaths) == 0 {
+		log.Fatal("env variables 'CHECK_CERTIFICATE_PATHS' must be specified")
+	}
+
+	if daemonType == "MASTER" || daemonType == "NODE" {
+		if err := checks.CheckFileSslCertificates(strings.Split(certPaths, ","), 80); err != nil {
+			errors = append(errors, err.Error())
+		}
+	}
+
 	if daemonType == "MASTER" {
 		externalSystem := os.Getenv("EXTERNAL_SYSTEM_URL")
 		hawcularIp := os.Getenv("HAWCULAR_SVC_IP")
 		allowedWithout := os.Getenv("PROJECTS_WITHOUT_LIMITS")
-		if len(externalSystem) == 0 || len(allowedWithout) == 0 {
-			log.Fatal("env variables 'EXTERNAL_SYSTEM_URL', 'PROJECTS_WITHOUT_LIMITS', 'HAWCULAR_SVC_IP' must be specified on type 'MASTER'")
+		certUrls := os.Getenv("CHECK_CERTIFICATE_URLS")
+
+		if len(externalSystem) == 0 || len(allowedWithout) == 0 || len(certUrls) == 0 {
+			log.Fatal("env variables 'EXTERNAL_SYSTEM_URL', 'PROJECTS_WITHOUT_LIMITS', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
 		}
 
 		allowedWithoutInt, err := strconv.Atoi(allowedWithout)
@@ -54,6 +68,10 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 
 		if err := checks.CheckLoggingRestartsCount(); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckUrlSslCertificates(strings.Split(certUrls, ","), 80); err != nil {
 			errors = append(errors, err.Error())
 		}
 	}

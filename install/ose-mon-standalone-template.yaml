@@ -61,8 +61,6 @@ objects:
       spec:
         containers:
         - env:
-          - name: WITH_HUB
-            value: "false"
           - name: DAEMON_TYPE
             value: POD
           - name: POD_NAMESPACE
