@@ -1,11 +1,8 @@
 package client
 
 import (
-	"io"
 	"log"
-	"math/rand"
 	"net/http"
-	"time"
 	"os"
 	"github.com/oscp/openshift-monitoring/daemon/client/handlers"
 )
