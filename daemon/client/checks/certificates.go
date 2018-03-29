@@ -128,7 +128,6 @@ func getExpiredCerts(filePaths []string, days int) (error, []Cert) {
 				expiredCerts = append(expiredCerts, Cert { File: file, DaysLeft: int(daysLeft) })
 			}
 		}
-
 	}
 
 	return nil, expiredCerts
@@ -154,6 +153,7 @@ func CheckUrlSslCertificates(urls []string, days int) error {
 		hc := &http.Client{Transport: tr}
 
 		resp, err := hc.Do(req)
+
 		if err != nil {
 			msg := fmt.Sprintf("get request failed for %s (%s)", url, err.Error())
 			log.Println(msg)
@@ -171,6 +171,8 @@ func CheckUrlSslCertificates(urls []string, days int) error {
 				}
 			}
 		}
+
+		resp.Body.Close()
 	}
 
 	if len(certErrorList) > 0 {
