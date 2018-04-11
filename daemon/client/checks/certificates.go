@@ -66,28 +66,213 @@ func decodeCertBlocks(data []byte) []*pem.Block {
 	}
 }
 
-func getCertFiles(filePaths []string) (error, []string) {
-	var certFiles []string
+func getKubeFiles(paths []string) (error, []string) {
+	var kubeFiles []string
 
-	for _, path := range filePaths {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+	for _, path := range paths {
+		file, err := os.Stat(path)
+		if os.IsNotExist(err) {
 			log.Printf("Path %s does not exist.", path)
 			continue
 		}
 
-		files, err := ioutil.ReadDir(path)
-		if err != nil {
-			msg := fmt.Sprintf("could not read directory %s (%s)", path, err.Error())
-			log.Println(msg)
-			return errors.New(msg), nil
-		}
-
-		for _, file := range files {
-			if file.IsDir() || filepath.Ext(file.Name()) != ".crt" {
-				continue
+		if file.IsDir() {
+			files, err := ioutil.ReadDir(path)
+			if err != nil {
+				msg := fmt.Sprintf("could not read directory %s (%s)", path, err.Error())
+				log.Println(msg)
+				return errors.New(msg), nil
 			}
 
-			certFiles = append(certFiles, filepath.Join(path, file.Name()))
+			for _, file := range files {
+				if file.IsDir() || filepath.Ext(file.Name()) != ".kubeconfig" {
+					continue
+				}
+
+				kubeFiles = append(kubeFiles, filepath.Join(path, file.Name()))
+			}
+		} else {
+			kubeFiles = append(kubeFiles, path)
+		}
+	}
+
+	return nil, kubeFiles
+}
+
+func CheckKubeSslCertificates(kubePaths []string, days int) error {
+	log.Printf("Checking expiry date for SSL certificates (%d days) in kube config files.", days)
+
+	var certErrorList []string
+
+	err, kubeFiles := getKubeFiles(kubePaths)
+	if err != nil {
+		return errors.New(fmt.Sprintf("could not get kube files (%s)", err.Error()))
+	}
+
+	for _, kubeFile := range kubeFiles {
+
+		data, err := ioutil.ReadFile(kubeFile)
+		if err != nil {
+			msg := fmt.Sprintf("could not read file %s", kubeFile)
+			log.Println(msg)
+			return errors.New(msg)
+		}
+
+		var kubeConfig KubeConfig
+
+		err = yaml.Unmarshal(data, &kubeConfig)
+		if err != nil {
+			msg := fmt.Sprintf("unmarshalling %s failed (%s)", kubeFile,  err.Error())
+			log.Println(msg)
+			return errors.New(msg)
+		}
+
+		for _, cluster := range kubeConfig.Clusters {
+			if len(cluster.Cluster.CertificateAuthorityData) > 0 {
+
+				certBytes, err := base64.StdEncoding.DecodeString(cluster.Cluster.CertificateAuthorityData)
+				if err != nil {
+					msg := fmt.Sprintf("can't base64 decode cert (%s)", err.Error())
+					log.Println(msg)
+					return errors.New(msg)
+				}
+
+				block, _ := pem.Decode(certBytes)
+
+				cert, err := x509.ParseCertificate(block.Bytes)
+				if err != nil {
+					msg := fmt.Sprintf("certificate parsing error (%s)", err.Error())
+					log.Println(msg)
+					return errors.New(msg)
+				}
+
+				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
+
+				if int(daysLeft) <= days {
+					msg := fmt.Sprintf("%s from %s expires in %d days", cert.Subject, kubeFile, int(daysLeft))
+					log.Println(msg)
+					certErrorList = append(certErrorList, msg)
+				}
+			}
+		}
+
+		for _, user := range kubeConfig.Users {
+			if len(user.User.ClientCertificateData) > 0 {
+
+				certBytes, _ := base64.StdEncoding.DecodeString(user.User.ClientCertificateData)
+				block, _ := pem.Decode(certBytes)
+
+				cert, err := x509.ParseCertificate(block.Bytes)
+
+				if err != nil {
+					msg := fmt.Sprintf("certificate parsing error (%s)", err.Error())
+					log.Println(msg)
+					return errors.New(msg)
+				}
+
+				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
+
+				if int(daysLeft) <= days {
+					msg := fmt.Sprintf("%s from %s expires in %d days", cert.Subject, kubeFile, int(daysLeft))
+					log.Println(msg)
+					certErrorList = append(certErrorList, msg)
+				}
+			}
+		}
+	}
+
+	if len(certErrorList) > 0 {
+		var errorMessage string
+		for _, msg := range certErrorList {
+			errorMessage = errorMessage + msg + " "
+		}
+		return errors.New(errorMessage)
+	}
+
+	return nil
+}
+
+func CheckUrlSslCertificates(urls []string, days int) error {
+	log.Printf("Checking expiry date for SSL certificates (%d days) via urls.", days)
+
+	var certErrorList []string
+
+	for _, url := range urls {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			msg := fmt.Sprintf("creating request failed for %s (%s)", url, err.Error())
+			log.Println(msg)
+			return errors.New(msg)
+		}
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		hc := &http.Client{Transport: tr}
+
+		resp, err := hc.Do(req)
+
+		if err != nil {
+			msg := fmt.Sprintf("get request failed for %s (%s)", url, err.Error())
+			log.Println(msg)
+			return errors.New(msg)
+		}
+
+		if resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
+			for _, cert := range resp.TLS.PeerCertificates {
+				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
+
+				if int(daysLeft) <= days {
+					msg := fmt.Sprintf("%s from %s expires in %d days", cert.Subject, url, int(daysLeft))
+					log.Println(msg)
+					certErrorList = append(certErrorList, msg)
+				}
+			}
+		}
+
+		resp.Body.Close()
+	}
+
+	if len(certErrorList) > 0 {
+		var errorMessage string
+		for _, msg := range certErrorList {
+			errorMessage = errorMessage + msg + " "
+		}
+		return errors.New(errorMessage)
+	}
+
+	return nil
+}
+
+func getCertFiles(filePaths []string) (error, []string) {
+	var certFiles []string
+
+	for _, path := range filePaths {
+		file, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			log.Printf("Path %s does not exist.", path)
+			continue
+		}
+
+		if file.IsDir() {
+
+			files, err := ioutil.ReadDir(path)
+			if err != nil {
+				msg := fmt.Sprintf("could not read directory %s (%s)", path, err.Error())
+				log.Println(msg)
+				return errors.New(msg), nil
+			}
+
+			for _, file := range files {
+				if file.IsDir() || filepath.Ext(file.Name()) != ".crt" {
+					continue
+				}
+
+				certFiles = append(certFiles, filepath.Join(path, file.Name()))
+			}
+		} else {
+			certFiles = append(certFiles, path)
 		}
 	}
 
@@ -133,59 +318,6 @@ func getExpiredCerts(filePaths []string, days int) (error, []Cert) {
 	return nil, expiredCerts
 }
 
-func CheckUrlSslCertificates(urls []string, days int) error {
-	log.Printf("Checking expiry date for SSL certificates (%d days) via urls.", days)
-
-	var certErrorList []string
-
-	for _, url := range urls {
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			msg := fmt.Sprintf("creating request failed for %s (%s)", url, err.Error())
-			log.Println(msg)
-			return errors.New(msg)
-		}
-
-		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-
-		hc := &http.Client{Transport: tr}
-
-		resp, err := hc.Do(req)
-
-		if err != nil {
-			msg := fmt.Sprintf("get request failed for %s (%s)", url, err.Error())
-			log.Println(msg)
-			return errors.New(msg)
-		}
-
-		if resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
-			for _, cert := range resp.TLS.PeerCertificates {
-				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
-
-				if int(daysLeft) <= days {
-					msg := fmt.Sprintf("certificate %s from %s expires in %d days", cert.Subject, url, int(daysLeft))
-					log.Println(msg)
-					certErrorList = append(certErrorList, msg)
-				}
-			}
-		}
-
-		resp.Body.Close()
-	}
-
-	if len(certErrorList) > 0 {
-		var errorMessage string
-		for _, msg := range certErrorList {
-			errorMessage = errorMessage + msg + " "
-		}
-		return errors.New(errorMessage)
-	}
-
-	return nil
-}
-
 func CheckFileSslCertificates(filePaths []string, days int) error {
 	log.Printf("Checking expiry date for SSL certificates (%d days) in files.", days)
 
@@ -200,81 +332,6 @@ func CheckFileSslCertificates(filePaths []string, days int) error {
 
 	for _, expiredCert := range expiredCerts {
 		certErrorList = append(certErrorList, fmt.Sprintf("%s expires in %d days", expiredCert.File, expiredCert.DaysLeft))
-	}
-
-	if _, err := os.Stat("/root/.kube/config"); os.IsNotExist(err) {
-		log.Println("File /root/.kube/config does not exist.")
-	} else {
-
-		data, err := ioutil.ReadFile("/root/.kube/config")
-		if err != nil {
-			msg := "could not read file /root/.kube/config"
-			log.Println(msg)
-			return errors.New(msg)
-		}
-
-		var kubeConfig KubeConfig
-
-		err = yaml.Unmarshal(data, &kubeConfig)
-		if err != nil {
-			msg := fmt.Sprintf("unmarshalling /root/.kube/config failed (%s)", err.Error())
-			log.Println(msg)
-			return errors.New(msg)
-		}
-
-		for _, cluster := range kubeConfig.Clusters {
-			if len(cluster.Cluster.CertificateAuthorityData) > 0 {
-
-				certBytes, err := base64.StdEncoding.DecodeString(cluster.Cluster.CertificateAuthorityData)
-				if err != nil {
-					msg := fmt.Sprintf("can't base64 decode cert (%s)", err.Error())
-					log.Println(msg)
-					return errors.New(msg)
-				}
-
-				block, _ := pem.Decode(certBytes)
-
-				cert, err := x509.ParseCertificate(block.Bytes)
-				if err != nil {
-					msg := fmt.Sprintf("certificate parsing error (%s)", err.Error())
-					log.Println(msg)
-					return errors.New(msg)
-				}
-
-				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
-
-				if int(daysLeft) <= days {
-					msg := fmt.Sprintf("certificate-authority-data from /root/.kube/config expires in %d days", int(daysLeft))
-					log.Println(msg)
-					certErrorList = append(certErrorList, msg)
-				}
-			}
-		}
-
-		for _, user := range kubeConfig.Users {
-			if len(user.User.ClientCertificateData) > 0 {
-
-				certBytes, _ := base64.StdEncoding.DecodeString(user.User.ClientCertificateData)
-				block, _ := pem.Decode(certBytes)
-
-				cert, err := x509.ParseCertificate(block.Bytes)
-
-				if err != nil {
-					msg := fmt.Sprintf("certificate parsing error (%s)", err.Error())
-					log.Println(msg)
-					return errors.New(msg)
-				}
-
-				daysLeft := cert.NotAfter.Sub(time.Now()).Hours() / 24
-
-				if int(daysLeft) <= days {
-					msg := fmt.Sprintf("client-certificate-data from /root/.kube/config expires in %d days", int(daysLeft))
-					log.Println(msg)
-					certErrorList = append(certErrorList, msg)
-				}
-			}
-		}
-
 	}
 
 	if len(certErrorList) > 0 {

@@ -26,12 +26,17 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 
 	if daemonType == "MASTER" || daemonType == "NODE" {
 		certPaths := os.Getenv("CHECK_CERTIFICATE_PATHS")
+		kubePaths := os.Getenv("CHECK_CERTIFICATE_KUBE_PATHS")
 
-		if len(certPaths) == 0 {
-			log.Fatal("env variables 'CHECK_CERTIFICATE_PATHS' must be specified")
+		if len(certPaths) == 0 || len(kubePaths) == 0 {
+			log.Fatal("env variables 'CHECK_CERTIFICATE_PATHS', 'CHECK_CERTIFICATE_KUBE_PATHS' must be specified")
 		}
 
 		if err := checks.CheckFileSslCertificates(strings.Split(certPaths, ","), 30); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckKubeSslCertificates(strings.Split(kubePaths, ","), 30); err != nil {
 			errors = append(errors, err.Error())
 		}
 	}
