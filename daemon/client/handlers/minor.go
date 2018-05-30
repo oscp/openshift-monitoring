@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"github.com/oscp/openshift-monitoring/daemon/client/checks"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/oscp/openshift-monitoring/daemon/client/checks"
 )
 
 func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request) {
@@ -34,6 +35,10 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 
 		if err := checks.CheckKubeSslCertificates(strings.Split(kubePaths, ","), 80); err != nil {
+			errors = append(errors, err.Error())
+		}
+
+		if err := checks.CheckBondNetworkInterface(); err != nil {
 			errors = append(errors, err.Error())
 		}
 	}
