@@ -34,6 +34,56 @@ func CheckExternalSystem(url string) error {
 	return nil
 }
 
+func CheckChrony() error {
+	log.Println("Checking output of 'chronyc tracking'")
+
+	out, err := exec.Command("bash", "-c", "chronyc tracking").Output()
+	if err != nil {
+		msg := "Could not check chrony status: " + err.Error()
+		log.Println(msg)
+		return errors.New(msg)
+	}
+
+	offset, err := parseChronyOffset(string(out))
+
+	if offset < -100 || offset > 100 {
+		return errors.New("Time is not correct on the server or chrony is not running")
+	} else {
+		return nil
+	}
+}
+
+func parseChronyOffset(out string) (float64, error) {
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, "Last offset") {
+			// Example output
+			// Reference ID    : 0A7CD814 (bn-ntp-01.sbb.ch)
+			// Stratum         : 2
+			// Ref time (UTC)  : Thu May 31 13:41:40 2018
+			// System time     : 0.000037743 seconds fast of NTP time
+			// Last offset     : +0.000061081 seconds
+			// RMS offset      : 0.000333012 seconds
+			// Frequency       : 6.629 ppm fast
+			// Residual freq   : +0.004 ppm
+			// Skew            : 0.140 ppm
+			// Root delay      : 0.002649408 seconds
+			// Root dispersion : 0.000559144 seconds
+			// Update interval : 517.4 seconds
+			// Leap status     : Normal
+			rgx := regexp.MustCompile("(.*offset\\s+:\\s+)(.*?)\\s+seconds")
+			offset := rgx.FindStringSubmatch(line)
+
+			log.Println("Found chrony offset:", offset[2])
+			out, err := strconv.ParseFloat(offset[2], 64)
+			if err != nil {
+				return -1000, fmt.Errorf("couldn't parse chrony offset. Value was %v", offset[2])
+			}
+			return out, nil
+		}
+	}
+	return -1000, fmt.Errorf("couldn't parse chrony offset. Offset line was not found.")
+}
+
 func CheckNtpd() error {
 	log.Println("Checking output of 'ntpq -c rv 0 offset'")
 

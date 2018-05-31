@@ -105,7 +105,7 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	if err := checks.CheckNtpd(); err != nil {
+	if err := checks.CheckChrony(); err != nil {
 		errors = append(errors, err.Error())
 	}
 
