@@ -46,7 +46,7 @@ func CheckChrony() error {
 
 	offset, err := parseChronyOffset(string(out))
 
-	if offset < -100 || offset > 100 {
+	if offset < -0.1 || offset > 0.1 { // 100 Millisekunden
 		return errors.New("Time is not correct on the server or chrony is not running")
 	} else {
 		return nil
@@ -61,7 +61,7 @@ func parseChronyOffset(out string) (float64, error) {
 			// Stratum         : 2
 			// Ref time (UTC)  : Thu May 31 13:41:40 2018
 			// System time     : 0.000037743 seconds fast of NTP time
-			// Last offset     : +0.000061081 seconds
+			// Last offset     : +0.000061081 seconds <--- SECONDS
 			// RMS offset      : 0.000333012 seconds
 			// Frequency       : 6.629 ppm fast
 			// Residual freq   : +0.004 ppm
