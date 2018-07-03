@@ -57,7 +57,7 @@ func parseChronyOffset(out string) (float64, error) {
 	for _, line := range strings.Split(string(out), "\n") {
 		if strings.Contains(line, "Last offset") {
 			// Example output
-			// Reference ID    : 0A7CD814 (bn-ntp-01.sbb.ch)
+			// Reference ID    : 0A7CD814 (some-ntp-server)
 			// Stratum         : 2
 			// Ref time (UTC)  : Thu May 31 13:41:40 2018
 			// System time     : 0.000037743 seconds fast of NTP time
