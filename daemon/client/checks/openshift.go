@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -36,34 +37,68 @@ func CheckMasterApis(urls string) error {
 func CheckOcGetNodes() error {
 	log.Println("Checking oc get nodes output")
 
-	out, err := runOcGetNodes()
+	availablePodHardLimit, err := getAvailablePodHardLimit()
 	if err != nil {
 		return err
 	}
 
-	if strings.Contains(out, "NotReady") {
-		// Wait a few seconds and see if still NotReady
-		// to avoid wrong alerts
-		time.Sleep(10 * time.Second)
-
-		out2, err := runOcGetNodes()
+	var notReadyCount int
+	var out string
+	for i := 0; i < 5; i++ {
+		out, err := runOcGetNodes()
 		if err != nil {
 			return err
 		}
-		if strings.Contains(out2, "NotReady") {
-			time.Sleep(10 * time.Second)
-
-			out3, err := runOcGetNodes()
-			if err != nil {
-				return err
-			}
-			if strings.Contains(out3, "NotReady") {
-				return errors.New("Some node is not ready! 'oc get nodes' output contained NotReady. Output: " + out3)
-			}
+		notReadyCount = nodesNotReady(out)
+		if notReadyCount*100 < availablePodHardLimit {
+			return nil
 		}
+		// wait a few seconds and then check again
+		time.Sleep(10 * time.Second)
 	}
+	return fmt.Errorf("%v nodes are not ready! AvailablePodHardLimit: %v (notReady*100>=hardLimit) Output: %v", notReadyCount, availablePodHardLimit, out)
+}
 
-	return nil
+func getAvailablePodHardLimit() (int, error) {
+	totalPods, err := getTotalPods()
+	if err != nil {
+		return 0, err
+	}
+	totalCapacity, err := getTotalPodCapacity()
+	if err != nil {
+		return 0, err
+	}
+	return totalCapacity - totalPods, nil
+}
+
+func nodesNotReady(output string) int {
+	r := regexp.MustCompile("NotReady")
+	matches := r.FindAllStringIndex(output, -1)
+	return len(matches)
+}
+
+func getTotalPods() (int, error) {
+	out, err := exec.Command("bash", "-c", "oc get pods --all-namespaces | grep -v Error | grep -v Completed | wc -l").Output()
+	if err != nil {
+		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
+	}
+	i, err := strconv.Atoi(string(out))
+	if err != nil {
+		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
+	}
+	return i, nil
+}
+
+func getTotalPodCapacity() (int, error) {
+	out, err := exec.Command("bash", "-c", "oc describe nodes -l purpose=workingnode | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
+	if err != nil {
+		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+	}
+	i, err := strconv.Atoi(string(out))
+	if err != nil {
+		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+	}
+	return i, nil
 }
 
 func runOcGetNodes() (string, error) {
