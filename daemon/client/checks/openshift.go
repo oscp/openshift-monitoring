@@ -208,7 +208,7 @@ func CheckRouterHealth(ip string) error {
 func CheckLoggingRestartsCount() error {
 	log.Println("Checking log-container restart count")
 
-	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
+	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide -l app=sematext-agent | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg := "Could not parse logging container restart count: " + err.Error()
 		log.Println(msg)
