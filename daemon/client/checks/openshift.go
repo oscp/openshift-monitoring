@@ -67,7 +67,7 @@ func CheckOcGetNodes() error {
 }
 
 func runOcGetNodes() (string, error) {
-	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled").Output()
+	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false | grep -v purpose=buildnode | grep -v SchedulingDisabled").Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
