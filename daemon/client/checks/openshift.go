@@ -33,41 +33,51 @@ func CheckMasterApis(urls string) error {
 	}
 }
 
-func CheckOcGetNodes() error {
+func CheckOcGetNodes(buildNodes bool) error {
 	log.Println("Checking oc get nodes output")
 
-	out, err := runOcGetNodes()
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(out, "NotReady") {
-		// Wait a few seconds and see if still NotReady
-		// to avoid wrong alerts
-		time.Sleep(10 * time.Second)
-
-		out2, err := runOcGetNodes()
+	var out string
+	var err error
+	for i := 0; i < 5; i++ {
+		out, err = runOcGetNodes(buildNodes)
 		if err != nil {
 			return err
 		}
-		if strings.Contains(out2, "NotReady") {
+		if strings.Contains(out, "NotReady") {
+			// Wait a few seconds and see if still NotReady
+			// to avoid wrong alerts
 			time.Sleep(10 * time.Second)
-
-			out3, err := runOcGetNodes()
-			if err != nil {
-				return err
-			}
-			if strings.Contains(out3, "NotReady") {
-				return errors.New("Some node is not ready! 'oc get nodes' output contained NotReady. Output: " + out3)
-			}
+			continue
 		}
+		return nil
 	}
-
-	return nil
+	var purpose string
+	if buildNodes {
+		purpose = "Buildnode "
+	} else {
+		purpose = "Workernode "
+	}
+	return errors.New(purpose + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
 }
 
-func runOcGetNodes() (string, error) {
-	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false | grep -v purpose=buildnode | grep -v SchedulingDisabled").Output()
+func getNotReadyNodeNames(out string) string {
+	lines := strings.Split(out, "\n")
+	var notReadyNodes []string
+	for _, line := range lines {
+		if strings.Contains(line, "NotReady") {
+			s := strings.Fields(line)[0]
+			notReadyNodes = append(notReadyNodes, s)
+		}
+	}
+	return strings.Join(notReadyNodes, ", ")
+}
+
+func runOcGetNodes(buildNodes bool) (string, error) {
+	buildNodes_grep_params := "-v"
+	if buildNodes {
+		buildNodes_grep_params = ""
+	}
+	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep %s purpose=buildnode | grep -v SchedulingDisabled", buildNodes_grep_params)).Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"os"
-	"regexp"
 )
 
 func CheckOpenFileCount() error {
