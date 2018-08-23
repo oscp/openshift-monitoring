@@ -1,29 +1,29 @@
 package checks
 
 import (
-	"encoding/pem"
-	"log"
-	"os"
-	"io/ioutil"
-	"fmt"
-	"path/filepath"
-	"crypto/x509"
-	"time"
-	"gopkg.in/yaml.v2"
-	"encoding/base64"
-	"errors"
-	"net/http"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
+	"errors"
+	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 type Cert struct {
-	File string
+	File     string
 	DaysLeft int
 }
 
 type KubeConfig struct {
 	APIVersion string `yaml:"apiVersion"`
-	Clusters []struct {
+	Clusters   []struct {
 		Cluster struct {
 			CertificateAuthorityData string `yaml:"certificate-authority-data"`
 			Server                   string `yaml:"server"`
@@ -40,7 +40,7 @@ type KubeConfig struct {
 	} `yaml:"contexts"`
 	CurrentContext string `yaml:"current-context"`
 	Kind           string `yaml:"kind"`
-	Preferences struct {
+	Preferences    struct {
 	} `yaml:"preferences"`
 	Users []struct {
 		Name string `yaml:"name"`
@@ -122,7 +122,7 @@ func CheckKubeSslCertificates(kubePaths []string, days int) error {
 
 		err = yaml.Unmarshal(data, &kubeConfig)
 		if err != nil {
-			msg := fmt.Sprintf("unmarshalling %s failed (%s)", kubeFile,  err.Error())
+			msg := fmt.Sprintf("unmarshalling %s failed (%s)", kubeFile, err.Error())
 			log.Println(msg)
 			return errors.New(msg)
 		}
@@ -310,7 +310,7 @@ func getExpiredCerts(filePaths []string, days int) (error, []Cert) {
 
 			if int(daysLeft) <= days {
 				log.Println(fmt.Sprintf("%s expires in %d days", file, int(daysLeft)))
-				expiredCerts = append(expiredCerts, Cert { File: file, DaysLeft: int(daysLeft) })
+				expiredCerts = append(expiredCerts, Cert{File: file, DaysLeft: int(daysLeft)})
 			}
 		}
 	}

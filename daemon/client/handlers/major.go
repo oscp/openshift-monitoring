@@ -51,7 +51,9 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			log.Fatal("env variables 'ETCD_IPS', 'REGISTRY_SVC_IP', 'ROUTER_IPS', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
 		}
 
-		if err := checks.CheckOcGetNodes(); err != nil {
+		// boolean false means exclude buildnodes
+		// boolean true means only buildnodes
+		if err := checks.CheckOcGetNodes(false); err != nil {
 			errors = append(errors, err.Error())
 		}
 

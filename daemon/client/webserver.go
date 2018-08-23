@@ -1,10 +1,10 @@
 package client
 
 import (
+	"github.com/oscp/openshift-monitoring/daemon/client/handlers"
 	"log"
 	"net/http"
 	"os"
-	"github.com/oscp/openshift-monitoring/daemon/client/handlers"
 )
 
 func RunWebserver(daemonType string) {
