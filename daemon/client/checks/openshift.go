@@ -77,7 +77,7 @@ func runOcGetNodes(buildNodes bool) (string, error) {
 	if buildNodes {
 		buildNodes_grep_params = ""
 	}
-	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep %s purpose=buildnode | grep -v SchedulingDisabled", buildNodes_grep_params)).Output()
+	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
