@@ -58,6 +58,12 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			log.Fatal("allowedWithout seems not to be an integer", allowedWithout)
 		}
 
+		// boolean false means exclude buildnodes
+		// boolean true means only buildnodes
+		if err := checks.CheckOcGetNodes(true); err != nil {
+			errors = append(errors, err.Error())
+		}
+
 		if err := checks.CheckExternalSystem(externalSystem); err != nil {
 			errors = append(errors, err.Error())
 		}

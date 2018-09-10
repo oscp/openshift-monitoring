@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"os"
-	"regexp"
 )
 
 func CheckOpenFileCount() error {
@@ -79,7 +79,7 @@ func CheckGlusterStatus() error {
 func CheckVGSizes(okSize int) error {
 	log.Println("Checking VG free size")
 
-	out, err := exec.Command("bash", "-c", "vgs -o vg_free,vg_size,VG_NAME --noheadings --units G --nosuffix | grep -v crash").Output()
+	out, err := exec.Command("bash", "-c", "vgs -o vg_free,vg_size,vg_name --noheadings --units G | grep -v crash").Output()
 	if err != nil {
 		msg := "Could not evaluate VG sizes: " + err.Error()
 		log.Println(msg)
@@ -94,7 +94,7 @@ func CheckVGSizes(okSize int) error {
 			log.Println("Checking VG size: ", l)
 
 			if !isOk {
-				return fmt.Errorf("VG size is below: %v | %v", strconv.Itoa(okSize), l)
+				return fmt.Errorf("VG free space is below: %v%% | (free,size,name) %v", strconv.Itoa(okSize), l)
 			}
 		}
 	}

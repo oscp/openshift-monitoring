@@ -34,37 +34,63 @@ func CheckMasterApis(urls string) error {
 	}
 }
 
-func CheckOcGetNodes() error {
+func CheckOcGetNodes(buildNodes bool) error {
 	log.Println("Checking oc get nodes output")
-
-	availablePodHardLimit, err := getAvailablePodHardLimit()
-	if err != nil {
-		return err
-	}
-
-	var notReadyCount int
 	var out string
+	var err error
 	for i := 0; i < 5; i++ {
-		out, err := runOcGetNodes()
+		out, err = runOcGetNodes(buildNodes)
 		if err != nil {
 			return err
 		}
-		notReadyCount = nodesNotReady(out)
-		if notReadyCount*100 < availablePodHardLimit {
-			return nil
+		if strings.Contains(out, "NotReady") {
+			// Wait a few seconds and see if still NotReady
+			// to avoid wrong alerts
+			time.Sleep(10 * time.Second)
+			continue
 		}
-		// wait a few seconds and then check again
-		time.Sleep(10 * time.Second)
+		return nil
 	}
-	return fmt.Errorf("%v nodes are not ready! AvailablePodHardLimit: %v (notReady*100>=hardLimit) Output: %v", notReadyCount, availablePodHardLimit, out)
+	var purpose string
+	if buildNodes {
+		purpose = "Buildnode "
+	} else {
+		purpose = "Workernode "
+	}
+	return errors.New(purpose + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
 }
 
-func getAvailablePodHardLimit() (int, error) {
+func CheckOcGetNodesRelaxed() error {
+	log.Println("Checking oc get nodes output")
+
+    availablePodHardLimit, err := getAvailablePodHardLimit()
+    if err != nil {
+        return err
+    }
+
+    var notReadyCount int
+	var out string
+	for i := 0; i < 5; i++ {
+		out, err := runOcGetNodes(false)
+		if err != nil {
+			return err
+		}
+        notReadyCount = nodesNotReady(out)
+        if notReadyCount*100 < availablePodHardLimit {
+		    return nil
+        }
+        // wait a few seconds and then check again
+        time.Sleep(10 * time.Second)
+	}
+	return errors.New("Capacity overload! Workernode " + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
+}
+
+func getAvailablePodHardLimit(output string) (int, error) {
 	totalPods, err := getTotalPods()
 	if err != nil {
 		return 0, err
 	}
-	totalCapacity, err := getTotalPodCapacity()
+	totalCapacity, err := getTotalPodCapacity(output)
 	if err != nil {
 		return 0, err
 	}
@@ -89,8 +115,8 @@ func getTotalPods() (int, error) {
 	return i, nil
 }
 
-func getTotalPodCapacity() (int, error) {
-	out, err := exec.Command("bash", "-c", "oc describe nodes -l purpose=workingnode | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
+func getTotalPodCapacity(output string) (int, error) {
+	out, err := exec.Command("bash", "-c", "oc describe nodes " + getReadyWorkingNodeNames(output) + " | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
 	if err != nil {
 		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
 	}
@@ -101,8 +127,46 @@ func getTotalPodCapacity() (int, error) {
 	return i, nil
 }
 
-func runOcGetNodes() (string, error) {
-	out, err := exec.Command("bash", "-c", "oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled").Output()
+func getNotReadyNodeNames(out string) string {
+	lines := strings.Split(out, "\n")
+	var notReadyNodes []string
+	for _, line := range lines {
+		if strings.Contains(line, "NotReady") {
+			s := strings.Fields(line)[0]
+			notReadyNodes = append(notReadyNodes, s)
+		}
+	}
+	return strings.Join(notReadyNodes, ", ")
+}
+
+func getReadyWorkingNodeNames(out string) string {
+	lines := strings.Split(out, "\n")
+	var ReadyWorkingNodes []string
+	for _, line := range lines {
+		if strings.Contains(line, "NotReady") {
+          continue
+        }
+		if strings.Contains(line, "SchedulingDisabled") {
+          continue
+        }
+		if strings.Contains(line, "purpose=buildnode") {
+          continue
+        }
+		s := strings.Fields(line)[0]
+		ReadyWorkingNodes = append(ReadyWorkingNodes, s)
+
+	}
+	return strings.Join(ReadyWorkingNodes, " ")
+}
+
+
+
+func runOcGetNodes(buildNodes bool) (string, error) {
+	buildNodes_grep_params := "-v"
+	if buildNodes {
+		buildNodes_grep_params = ""
+	}
+	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
@@ -243,7 +307,7 @@ func CheckRouterHealth(ip string) error {
 func CheckLoggingRestartsCount() error {
 	log.Println("Checking log-container restart count")
 
-	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide | tr -s ' ' | cut -d ' ' -f 4").Output()
+	out, err := exec.Command("bash", "-c", "oc get pods -n logging -o wide -l app=sematext-agent | tr -s ' ' | cut -d ' ' -f 4").Output()
 	if err != nil {
 		msg := "Could not parse logging container restart count: " + err.Error()
 		log.Println(msg)
