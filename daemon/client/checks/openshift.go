@@ -77,7 +77,11 @@ func CheckOcGetNodesRelaxed() error {
 		if err != nil {
 			return err
 		}
-		if notReadyCount*getEnv("OPENSHIFT_MAX_PODS", 100) < availablePodHardLimit {
+		max_pods, err := strconv.Atoi(getEnv("OPENSHIFT_MAX_PODS", "100"))
+		if err != nil {
+			return errors.New("Could not parse OPENSHIFT_MAX_PODS environment variable: " + err.Error())
+		}
+		if notReadyCount*max_pods < availablePodHardLimit {
 			return nil
 		}
 		// wait a few seconds and then check again
