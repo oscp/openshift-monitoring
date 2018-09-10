@@ -63,24 +63,24 @@ func CheckOcGetNodes(buildNodes bool) error {
 func CheckOcGetNodesRelaxed() error {
 	log.Println("Checking oc get nodes output")
 
-    availablePodHardLimit, err := getAvailablePodHardLimit()
-    if err != nil {
-        return err
-    }
+	availablePodHardLimit, err := getAvailablePodHardLimit()
+	if err != nil {
+		return err
+	}
 
-    var notReadyCount int
+	var notReadyCount int
 	var out string
 	for i := 0; i < 5; i++ {
 		out, err := runOcGetNodes(false)
 		if err != nil {
 			return err
 		}
-        notReadyCount = nodesNotReady(out)
-        if notReadyCount*100 < availablePodHardLimit {
-		    return nil
-        }
-        // wait a few seconds and then check again
-        time.Sleep(10 * time.Second)
+		notReadyCount = nodesNotReady(out)
+		if notReadyCount*100 < availablePodHardLimit {
+			return nil
+		}
+		// wait a few seconds and then check again
+		time.Sleep(10 * time.Second)
 	}
 	return errors.New("Capacity overload! Workernode " + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
 }
@@ -116,7 +116,7 @@ func getTotalPods() (int, error) {
 }
 
 func getTotalPodCapacity(output string) (int, error) {
-	out, err := exec.Command("bash", "-c", "oc describe nodes " + getReadyWorkingNodeNames(output) + " | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
+	out, err := exec.Command("bash", "-c", "oc describe nodes "+getReadyWorkingNodeNames(output)+" | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
 	if err != nil {
 		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
 	}
@@ -144,22 +144,20 @@ func getReadyWorkingNodeNames(out string) string {
 	var ReadyWorkingNodes []string
 	for _, line := range lines {
 		if strings.Contains(line, "NotReady") {
-          continue
-        }
+			continue
+		}
 		if strings.Contains(line, "SchedulingDisabled") {
-          continue
-        }
+			continue
+		}
 		if strings.Contains(line, "purpose=buildnode") {
-          continue
-        }
+			continue
+		}
 		s := strings.Fields(line)[0]
 		ReadyWorkingNodes = append(ReadyWorkingNodes, s)
 
 	}
 	return strings.Join(ReadyWorkingNodes, " ")
 }
-
-
 
 func runOcGetNodes(buildNodes bool) (string, error) {
 	buildNodes_grep_params := "-v"
