@@ -63,11 +63,6 @@ func CheckOcGetNodes(buildNodes bool) error {
 func CheckOcGetNodesRelaxed() error {
 	log.Println("Checking oc get nodes output")
 
-	availablePodHardLimit, err := getAvailablePodHardLimit()
-	if err != nil {
-		return err
-	}
-
 	var notReadyCount int
 	var out string
 	for i := 0; i < 5; i++ {
@@ -76,6 +71,10 @@ func CheckOcGetNodesRelaxed() error {
 			return err
 		}
 		notReadyCount = nodesNotReady(out)
+		availablePodHardLimit, err := getAvailablePodHardLimit(out)
+		if err != nil {
+			return err
+		}
 		if notReadyCount*100 < availablePodHardLimit {
 			return nil
 		}
