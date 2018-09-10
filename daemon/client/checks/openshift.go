@@ -87,7 +87,7 @@ func CheckOcGetNodesRelaxed() error {
 		// wait a few seconds and then check again
 		time.Sleep(10 * time.Second)
 	}
-	return fmt.Errorf("Capacity overload! Workernode %v is not ready! AvailablePodHardLimit: %v 'oc get nodes' output contained NotReady. Output: %v", getNotReadyNodeNames(out), availablePodHardLimit, out)
+	return fmt.Errorf("Capacity overload! Workingnode %v is not ready! AvailablePodHardLimit: %v 'oc get nodes' output contained NotReady. Output: %v", getNotReadyNodeNames(out), availablePodHardLimit, out)
 }
 
 func getAvailablePodHardLimit(output string) (int, error) {
