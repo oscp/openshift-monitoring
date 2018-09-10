@@ -55,7 +55,7 @@ func CheckOcGetNodes(buildNodes bool) error {
 	if buildNodes {
 		purpose = "Buildnode "
 	} else {
-		purpose = "Workernode "
+		purpose = "Workingnode "
 	}
 	return errors.New(purpose + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
 }
@@ -64,14 +64,16 @@ func CheckOcGetNodesRelaxed() error {
 	log.Println("Checking oc get nodes output")
 
 	var notReadyCount int
+	var availablePodHardLimit int
 	var out string
+	var err error
 	for i := 0; i < 5; i++ {
-		out, err := runOcGetNodes(false)
+		out, err = runOcGetNodes(false)
 		if err != nil {
 			return err
 		}
 		notReadyCount = nodesNotReady(out)
-		availablePodHardLimit, err := getAvailablePodHardLimit(out)
+		availablePodHardLimit, err = getAvailablePodHardLimit(out)
 		if err != nil {
 			return err
 		}
@@ -81,7 +83,7 @@ func CheckOcGetNodesRelaxed() error {
 		// wait a few seconds and then check again
 		time.Sleep(10 * time.Second)
 	}
-	return errors.New("Capacity overload! Workernode " + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
+	return fmt.Errorf("Capacity overload! Workernode %v is not ready! AvailablePodHardLimit: %v 'oc get nodes' output contained NotReady. Output: %v", getNotReadyNodeNames(out), availablePodHardLimit, out)
 }
 
 func getAvailablePodHardLimit(output string) (int, error) {
@@ -107,7 +109,8 @@ func getTotalPods() (int, error) {
 	if err != nil {
 		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
 	}
-	i, err := strconv.Atoi(string(out))
+	trimmed := strings.TrimSpace(string(out))
+	i, err := strconv.Atoi(trimmed)
 	if err != nil {
 		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
 	}
@@ -119,7 +122,8 @@ func getTotalPodCapacity(output string) (int, error) {
 	if err != nil {
 		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
 	}
-	i, err := strconv.Atoi(string(out))
+	trimmed := strings.TrimSpace(string(out))
+	i, err := strconv.Atoi(trimmed)
 	if err != nil {
 		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
 	}
@@ -142,6 +146,9 @@ func getReadyWorkingNodeNames(out string) string {
 	lines := strings.Split(out, "\n")
 	var ReadyWorkingNodes []string
 	for _, line := range lines {
+		if line == "" {
+			continue
+		}
 		if strings.Contains(line, "NotReady") {
 			continue
 		}
@@ -151,9 +158,8 @@ func getReadyWorkingNodeNames(out string) string {
 		if strings.Contains(line, "purpose=buildnode") {
 			continue
 		}
-		s := strings.Fields(line)[0]
-		ReadyWorkingNodes = append(ReadyWorkingNodes, s)
-
+		s := strings.Fields(line)
+		ReadyWorkingNodes = append(ReadyWorkingNodes, s[0])
 	}
 	return strings.Join(ReadyWorkingNodes, " ")
 }
@@ -163,7 +169,7 @@ func runOcGetNodes(buildNodes bool) (string, error) {
 	if buildNodes {
 		buildNodes_grep_params = ""
 	}
-	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
+	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels --no-headers | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
