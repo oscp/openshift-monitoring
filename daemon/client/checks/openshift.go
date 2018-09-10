@@ -77,7 +77,7 @@ func CheckOcGetNodesRelaxed() error {
 		if err != nil {
 			return err
 		}
-		if notReadyCount*100 < availablePodHardLimit {
+		if notReadyCount*getEnv("OPENSHIFT_MAX_PODS", 100) < availablePodHardLimit {
 			return nil
 		}
 		// wait a few seconds and then check again
