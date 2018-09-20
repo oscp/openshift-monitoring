@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +36,6 @@ func CheckMasterApis(urls string) error {
 
 func CheckOcGetNodes(buildNodes bool) error {
 	log.Println("Checking oc get nodes output")
-
 	var out string
 	var err error
 	for i := 0; i < 5; i++ {
@@ -55,9 +55,83 @@ func CheckOcGetNodes(buildNodes bool) error {
 	if buildNodes {
 		purpose = "Buildnode "
 	} else {
-		purpose = "Workernode "
+		purpose = "Workingnode "
 	}
 	return errors.New(purpose + getNotReadyNodeNames(out) + " is not ready! 'oc get nodes' output contained NotReady. Output: " + out)
+}
+
+func CheckOcGetNodesRelaxed() error {
+	log.Println("Checking oc get nodes output")
+
+	var notReadyCount int
+	var availablePodHardLimit int
+	var out string
+	var err error
+	for i := 0; i < 5; i++ {
+		out, err = runOcGetNodes(false)
+		if err != nil {
+			return err
+		}
+		notReadyCount = nodesNotReady(out)
+		availablePodHardLimit, err = getAvailablePodHardLimit(out)
+		if err != nil {
+			return err
+		}
+		max_pods, err := strconv.Atoi(getEnv("OPENSHIFT_MAX_PODS", "100"))
+		if err != nil {
+			return errors.New("Could not parse OPENSHIFT_MAX_PODS environment variable: " + err.Error())
+		}
+		if notReadyCount*max_pods < availablePodHardLimit {
+			return nil
+		}
+		// wait a few seconds and then check again
+		time.Sleep(10 * time.Second)
+	}
+	return fmt.Errorf("Capacity overload! Workingnode %v is not ready! AvailablePodHardLimit: %v 'oc get nodes' output contained NotReady. Output: %v", getNotReadyNodeNames(out), availablePodHardLimit, out)
+}
+
+func getAvailablePodHardLimit(output string) (int, error) {
+	totalPods, err := getTotalPods()
+	if err != nil {
+		return 0, err
+	}
+	totalCapacity, err := getTotalPodCapacity(output)
+	if err != nil {
+		return 0, err
+	}
+	return totalCapacity - totalPods, nil
+}
+
+func nodesNotReady(output string) int {
+	r := regexp.MustCompile("NotReady")
+	matches := r.FindAllStringIndex(output, -1)
+	return len(matches)
+}
+
+func getTotalPods() (int, error) {
+	out, err := exec.Command("bash", "-c", "oc get pods --all-namespaces | grep -v Error | grep -v Completed | wc -l").Output()
+	if err != nil {
+		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
+	}
+	trimmed := strings.TrimSpace(string(out))
+	i, err := strconv.Atoi(trimmed)
+	if err != nil {
+		return 0, errors.New("Could not parse oc get pods output: " + err.Error())
+	}
+	return i, nil
+}
+
+func getTotalPodCapacity(output string) (int, error) {
+	out, err := exec.Command("bash", "-c", "oc describe nodes "+getReadyWorkingNodeNames(output)+" | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
+	if err != nil {
+		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+	}
+	trimmed := strings.TrimSpace(string(out))
+	i, err := strconv.Atoi(trimmed)
+	if err != nil {
+		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+	}
+	return i, nil
 }
 
 func getNotReadyNodeNames(out string) string {
@@ -72,12 +146,34 @@ func getNotReadyNodeNames(out string) string {
 	return strings.Join(notReadyNodes, ", ")
 }
 
+func getReadyWorkingNodeNames(out string) string {
+	lines := strings.Split(out, "\n")
+	var ReadyWorkingNodes []string
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		if strings.Contains(line, "NotReady") {
+			continue
+		}
+		if strings.Contains(line, "SchedulingDisabled") {
+			continue
+		}
+		if strings.Contains(line, "purpose=buildnode") {
+			continue
+		}
+		s := strings.Fields(line)
+		ReadyWorkingNodes = append(ReadyWorkingNodes, s[0])
+	}
+	return strings.Join(ReadyWorkingNodes, " ")
+}
+
 func runOcGetNodes(buildNodes bool) (string, error) {
 	buildNodes_grep_params := "-v"
 	if buildNodes {
 		buildNodes_grep_params = ""
 	}
-	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
+	out, err := exec.Command("bash", "-c", fmt.Sprintf("oc get nodes --show-labels --no-headers | grep -v monitoring=false | grep -v SchedulingDisabled | grep %s purpose=buildnode || test $? -eq 1", buildNodes_grep_params)).Output()
 	if err != nil {
 		msg := "Could not parse oc get nodes output: " + err.Error()
 		log.Println(msg)
