@@ -122,14 +122,14 @@ func getTotalPods() (int, error) {
 }
 
 func getTotalPodCapacity(output string) (int, error) {
-	out, err := exec.Command("bash", "-c", "oc describe nodes "+getReadyWorkingNodeNames(output)+" | grep Capacity -A4 | grep pods | awk '{ print $2 }' | paste -sd+ | bc").Output()
+	out, err := exec.Command("bash", "-c", "oc get nodes "+getReadyWorkingNodeNames(output)+` -o=jsonpath='{range .items[*]}{.status.capacity.pods}{"\n"}{end}' | paste -sd+ | bc`).Output()
 	if err != nil {
-		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+		return 0, errors.New("Could not parse oc get nodes output: " + err.Error())
 	}
 	trimmed := strings.TrimSpace(string(out))
 	i, err := strconv.Atoi(trimmed)
 	if err != nil {
-		return 0, errors.New("Could not parse oc describe nodes output: " + err.Error())
+		return 0, errors.New("Could not parse oc get nodes output: " + err.Error())
 	}
 	return i, nil
 }
