@@ -1,7 +1,6 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os/exec"
@@ -13,9 +12,8 @@ func CheckDockerPool(okSize int) error {
 
 	out, err := exec.Command("bash", "-c", "lvs -o data_percent,metadata_percent,LV_NAME --noheadings --units G --nosuffix | grep docker-pool").Output()
 	if err != nil {
-		msg := "Could not parse docker pool size: " + err.Error()
-		log.Println(msg)
-		return errors.New(msg)
+		// ignore errors. grep exits with 1 if docker-pool is not found
+		return nil
 	}
 
 	isOk := isLvsSizeOk(string(out), okSize)
