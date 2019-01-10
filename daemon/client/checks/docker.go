@@ -1,7 +1,6 @@
 package checks
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os/exec"
