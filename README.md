@@ -107,7 +107,8 @@ HAWCULAR\_SVC\_IP|MASTER|Ip of the hawcular service|10.10.10.1
 ETCD\_IPS|MASTER|Ips of the etcd hosts with protocol & port|https://192.168.125.241:2379,https://192.168.125.244:2379
 REGISTRY\_SVC\_IP|MASTER|Ip of the registry service|10.10.10.1
 ROUTER\_IPS|MASTER|Ips of the routers services|10.10.10.1,10.10.10.2
-PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits & quotas|4
+PROJECTS\_WITHOUT\_LIMITS|MASTER|Number of system projects that have no limits |4
+PROJECTS\_WITHOUT\_QUOTA|MASTER|Number of system projects that have no quotas |4
 IS\_GLUSTER\_SERVER|STORAGE|Boolean value of the node is a gluster server|true/false
 MOUNTPOINTS\_TO\_CHECK|A list of mount points where free size should be checked|/gluster/registry/,/gluster/xxx
 CHECK\_CERTIFICATE\_URLS|A list of urls to check for validity of certificate|https://master-ip:8443

@@ -419,7 +419,7 @@ func checkEtcdHealthWithCertPath(msg *string, certPath string, etcdIps string) b
 	return true
 }
 
-func CheckLimitsAndQuotas(allowedWithout int) error {
+func CheckLimitsAndQuota(allowedWithoutLimits int, allowedWithoutQuota int) error {
 	log.Println("Checking limits & quotas")
 
 	// Count projects
@@ -438,7 +438,7 @@ func CheckLimitsAndQuotas(allowedWithout int) error {
 		return errors.New(msg)
 	}
 
-	// Count quotas
+	// Count quota
 	quotaCount, err := exec.Command("bash", "-c", "oc get quota --all-namespaces | wc -l").Output()
 	if err != nil {
 		msg := "Could not parse quota count" + err.Error()
@@ -453,11 +453,11 @@ func CheckLimitsAndQuotas(allowedWithout int) error {
 
 	log.Println("Parsed values (projects,limits,quotas)", pCount, lCount, qCount)
 
-	if pCount-allowedWithout != lCount {
+	if pCount-allowedWithoutLimits <= lCount {
 		return errors.New("There are some projects without limits")
 	}
-	if pCount-allowedWithout != qCount {
-		return errors.New("There are some projects without quotas")
+	if pCount-allowedWithoutQuota <= qCount {
+		return errors.New("There are some projects without quota")
 	}
 
 	return nil
