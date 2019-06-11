@@ -46,16 +46,21 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 	if daemonType == "MASTER" {
 		externalSystem := os.Getenv("EXTERNAL_SYSTEM_URL")
 		hawcularIp := os.Getenv("HAWCULAR_SVC_IP")
-		allowedWithout := os.Getenv("PROJECTS_WITHOUT_LIMITS")
+		allowedWithoutLimits := os.Getenv("PROJECTS_WITHOUT_LIMITS")
+		allowedWithoutQuota := os.Getenv("PROJECTS_WITHOUT_QUOTA")
 		certUrls := os.Getenv("CHECK_CERTIFICATE_URLS")
 
-		if len(externalSystem) == 0 || len(allowedWithout) == 0 || len(certUrls) == 0 {
-			log.Fatal("env variables 'EXTERNAL_SYSTEM_URL', 'PROJECTS_WITHOUT_LIMITS', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
+		if len(externalSystem) == 0 || len(allowedWithoutLimits) == 0 || len(allowedWithoutQuota) == 0 || len(certUrls) == 0 {
+			log.Fatal("env variables 'EXTERNAL_SYSTEM_URL', 'PROJECTS_WITHOUT_LIMITS', 'PROJECTS_WITHOUT_QUOTA', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
 		}
 
-		allowedWithoutInt, err := strconv.Atoi(allowedWithout)
+		allowedWithoutLimitsInt, err := strconv.Atoi(allowedWithoutLimits)
 		if err != nil {
-			log.Fatal("allowedWithout seems not to be an integer", allowedWithout)
+			log.Fatal("allowedWithoutLimits seems not to be an integer", allowedWithoutLimits)
+		}
+		allowedWithoutQuotaInt, err := strconv.Atoi(allowedWithoutQuota)
+		if err != nil {
+			log.Fatal("allowedWithoutLimits seems not to be an integer", allowedWithoutQuota)
 		}
 
 		// boolean false means exclude buildnodes
@@ -76,7 +81,7 @@ func HandleMinorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 			errors = append(errors, err.Error())
 		}
 
-		if err := checks.CheckLimitsAndQuotas(allowedWithoutInt); err != nil {
+		if err := checks.CheckLimitsAndQuota(allowedWithoutLimitsInt, allowedWithoutQuotaInt); err != nil {
 			errors = append(errors, err.Error())
 		}
 
