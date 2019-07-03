@@ -274,6 +274,10 @@ func CheckHttpHaProxy(publicUrl string, slow bool) error {
 }
 
 func CheckRegistryHealth(ip string) error {
+	if len(ip) == 0 {
+		return nil
+	}
+
 	log.Println("Checking registry health")
 
 	if err := checkHttp("http://" + ip + ":5000/healthz"); err != nil {
