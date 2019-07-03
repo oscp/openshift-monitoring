@@ -47,8 +47,8 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		routerIps := os.Getenv("ROUTER_IPS")
 		certUrls := os.Getenv("CHECK_CERTIFICATE_URLS")
 
-		if len(etcdIps) == 0 || len(registryIp) == 0 || len(routerIps) == 0 || len(certUrls) == 0 {
-			log.Fatal("env variables 'ETCD_IPS', 'REGISTRY_SVC_IP', 'ROUTER_IPS', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
+		if len(etcdIps) == 0 || len(routerIps) == 0 || len(certUrls) == 0 {
+			log.Fatal("env variables 'ETCD_IPS', 'ROUTER_IPS', 'CHECK_CERTIFICATE_URLS' must be specified on type 'MASTER'")
 		}
 
 		// boolean false means exclude buildnodes
