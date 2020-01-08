@@ -330,8 +330,8 @@ func CheckLoggingRestartsCount() error {
 	for _, l := range strings.Split(string(out), "\n") {
 		if !strings.HasPrefix(l, "RESTARTS") && len(strings.TrimSpace(l)) > 0 {
 			cnt, _ := strconv.Atoi(l)
-			if cnt > 2 {
-				msg = "A logging-container has restart count bigger than 2 - " + strconv.Itoa(cnt)
+			if cnt > 7 {
+				msg = "A logging-container has restart count bigger than 7 - " + strconv.Itoa(cnt)
 				isOk = false
 			}
 		}
