@@ -58,9 +58,9 @@ func HandleMajorChecks(daemonType string, w http.ResponseWriter, r *http.Request
 		}
 
 		// check notready working nodes but only alert if no more capacity is available
-		if err := checks.CheckOcGetNodesRelaxed(); err != nil {
-			errors = append(errors, err.Error())
-		}
+		//if err := checks.CheckOcGetNodesRelaxed(); err != nil {
+		//	errors = append(errors, err.Error())
+		//}
 
 		if err := checks.CheckEtcdHealth(etcdIps, ""); err != nil {
 			errors = append(errors, err.Error())
